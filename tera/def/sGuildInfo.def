@@ -1,0 +1,49 @@
+count  ranks
+offset ranks
+offset name
+offset title
+offset master
+offset motd
+offset myRank
+offset ad
+
+int32 id
+int32 unk2
+int32 unk3
+int32 masterId
+int64 creationDate
+int32 unk4
+int32 unk5
+int32 praise
+int32 unk6
+int16 unk7
+int32 fame
+int32 totalAccounts
+int32 gvgAccounts
+int32 alliance # ?
+int32 unk12
+int32 gvgAccounts2 # ?
+int32 unk14
+int32 unk15
+int32 unk16
+int32 unk17
+int16 unk18
+byte  unk19
+int16 unk20
+int32 unk21
+int64 unk22
+int32 league
+int32 currentSeasonRank
+int32 lastSeasonRank
+int32 prestige
+string name
+string title
+string master
+string motd
+string myRank
+string ad
+array  ranks
+- offset name
+- uint32 id
+- uint32 permissions
+- string name

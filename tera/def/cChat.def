@@ -1,0 +1,3 @@
+offset message
+int32  channel
+string message

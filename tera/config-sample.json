@@ -1,0 +1,8 @@
+{ "email": "tera-bot@discord.gg"
+, "pass": "password"
+, "character": "Discord.Bot"
+, "host": "208.67.49.68"
+, "port": 10001
+, "modules":
+  { "discord": { "socketName": "tera-discord-ipc" } }
+}

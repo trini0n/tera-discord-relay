@@ -1,0 +1,12 @@
+{
+  "name": "tera-bot",
+  "version": "0.0.1",
+  "author": "meishu",
+  "description": "TERA broker bot",
+  "engines": {
+    "node": "~0.10.26"
+  },
+  "dependencies": {
+    "request": "~2.34.0"
+  }
+}
