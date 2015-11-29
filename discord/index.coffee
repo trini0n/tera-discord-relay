@@ -201,7 +201,7 @@ bot.on 'userUpdate', (oldUser, newUser) -> # TODO this was fixed in discord.js c
 
 bot.on 'disconnected', ->
   console.log 'disconnected'
-  channel = null
+  process.exit()
 
 bot.on 'warn', (warn) ->
   console.warn warn

@@ -100,8 +100,9 @@ module.exports = class GameClient
       dispatch.toServer 'cPong'
       return
 
-    @client.on 'close', =>
-      @emit '*close*'
+    # terminate when connection ends
+    @client.on 'close', ->
+      process.exit()
 
   connect: ->
     # pass through for now
