@@ -88,8 +88,9 @@ module.exports = class Discord
       if event.first
         guildMembers = []
 
-      for member in event.members when member.status isnt 2
-        guildMembers.push member.name
+      for member in event.members
+        if member.status isnt 2 and member.name isnt myName
+            guildMembers.push member.name
 
       if event.last
         ipc.send 'guild', guildMembers
