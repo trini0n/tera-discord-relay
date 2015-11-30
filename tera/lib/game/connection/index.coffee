@@ -35,6 +35,7 @@ module.exports = class Connection extends events.EventEmitter
   connect: (opt) ->
     @client = net.connect opt
     @client.setNoDelay true
+    @client.setTimeout 30 * 1000
 
     @client.on 'connect', =>
       console.log "<connected to #{@client.remoteAddress}:#{@client.remotePort}>"
@@ -66,6 +67,11 @@ module.exports = class Connection extends events.EventEmitter
             opcode = data.readUInt16LE 2
             @dispatch.handle opcode, data
       return
+
+    @client.on 'timeout', =>
+      console.log '<timeout>'
+      @client.end()
+      @client.destroy()
 
     @client.on 'close', =>
       console.log '<disconnected>'
