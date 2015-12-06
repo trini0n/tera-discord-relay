@@ -7,6 +7,6 @@
     "node": "~0.10.26"
   },
   "dependencies": {
-    "discord.js": "^5.0.1"
+    "discord.js": "^5.1.0"
   }
 }

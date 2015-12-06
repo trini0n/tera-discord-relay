@@ -152,6 +152,7 @@ bot.on 'ready', ->
 
   ipc.send 'fetch'
 
+###
 bot.on 'presence', (user, status, game) ->
   oldStatus = userlist[user.id]
   if oldStatus?
@@ -160,6 +161,7 @@ bot.on 'presence', (user, status, game) ->
       userlist[user.id] = online
       # too spammy?
       ;#ipc.send 'info', "@#{user.username} is now #{if online then 'on' else 'off'}line"
+###
 
 bot.on 'message', (message) ->
   if message.channel.equals channel
@@ -187,17 +189,9 @@ bot.on 'serverMemberUpdated', (eventServer, user) ->
         if online
           ipc.send 'info', "@#{user.username} joined ##{channel.name}"
 
-bot.on 'userUpdate', (oldUser, newUser) -> # TODO this was fixed in discord.js c9497a0
-  oldStatus = userlist[oldUser.id]
-  if oldStatus?
-    if oldUser.username isnt newUser.username
-      ipc.send 'info', "@#{oldUser.username} changed name to @#{newUser.username}"
-    else
-      online = (newUser.status isnt 'offline')
-      if oldStatus isnt online
-        userlist[oldUser.id] = online
-        # too spammy?
-        ;#ipc.send 'info', "@#{newUser.username} is now #{if online then 'on' else 'off'}line"
+bot.on 'userUpdated', (oldUser, newUser) ->
+  if oldUser.username isnt newUser.username
+    ipc.send 'info', "@#{oldUser.username} changed name to @#{newUser.username}"
 
 bot.on 'disconnected', ->
   console.log 'disconnected'
