@@ -59,7 +59,7 @@ module.exports = class GameClient
         unk1: 0 # I have
         unk2: 0 # no idea
         unk3: 2 # what this means
-        unk4: 3701 # (version?)
+        unk4: 3707 # patch version
         name: name
         ticket: new Buffer ticket
 
