@@ -61,7 +61,7 @@ ipc = new IPC.client path, (event, args...) ->
         for id, online of userlist
           user = server.members.get 'id', id
           lists[if online then 'online' else 'offline'].push user?.username ? '(#' + id + ')'
-        ipc.send 'userlist', target, lists
+        #ipc.send 'userlist', target, lists
 
       when 'sysmsg'
         [str, params] = args
@@ -100,6 +100,8 @@ ipc = new IPC.client path, (event, args...) ->
           when '@1954'
             user = params['UserName']
             bot.sendMessage channel, "#{user} logged out."
+
+  return
 
 bot.on 'ready', ->
   console.log 'connected as %s (%s)', bot.user.username, bot.user.id
