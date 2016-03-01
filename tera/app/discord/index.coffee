@@ -7,10 +7,10 @@ escape = (str) ->
     .replace /</g, '&lt;'
     .replace />/g, '&gt;'
     .replace /\.(?=com)/gi, '.&#8206;' # bypass ".com"
-    .replace /w-w/gi, (match) -> match.split('-').join('-&#8206;') # bypass "w-w"
-    .replace /w{3,}/gi, (match) -> match.split('').join('&#8206;') # bypass "www"
-    .replace /fag/gi, (match) -> match[0] + '&#8206;' + match[1..] # bypass "fag"
-    .replace /niga/gi, (match) -> match[0] + '&#8206;' + match[1..] # bypass "niga"
+    .replace /w-w/gi, (match) -> match.split('-').join('-&#8206;')   # bypass "w-w"
+    .replace /w{3,}/gi, (match) -> match.split('').join('&#8206;')   # bypass "www"
+    .replace /w w w/gi, (match) -> match.split(' ').join('&#8206; ') # bypass "w w w"
+    .replace /fag/gi, (match) -> match[0] + '&#8206;' + match[1..]   # bypass "fag"
     .replace /\n/g, ' '
     .replace /\t/g, '    '
     .replace /[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '?'
