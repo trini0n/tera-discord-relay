@@ -50,16 +50,16 @@ module.exports = class GameClient
     @client.on 'connect', ->
       # version check
       dispatch.toServer 'cCheckVersion', version: [
-        { index: 0, value: 0x0004848E }
-        { index: 1, value: 0x0004850B }
+        { index: 0, value: 0x000495A2 }
+        { index: 1, value: 0x00049525 }
       ]
 
       # authorization
       dispatch.toServer 'cLoginArbiter',
-        unk1: 0 # I have
-        unk2: 0 # no idea
-        unk3: 2 # what this means
-        unk4: 3707 # patch version
+        unk1: 0 # ?
+        unk2: 0 # ?
+        unk3: 2 # ?
+        unk4: 3907 # patch version
         name: name
         ticket: new Buffer ticket
 
