@@ -154,17 +154,6 @@ bot.on 'ready', ->
 
   ipc.send 'fetch'
 
-###
-bot.on 'presence', (user, status, game) ->
-  oldStatus = userlist[user.id]
-  if oldStatus?
-    online = (status isnt 'offline')
-    if oldStatus isnt online
-      userlist[user.id] = online
-      # too spammy?
-      ;#ipc.send 'info', "@#{user.username} is now #{if online then 'on' else 'off'}line"
-###
-
 bot.on 'message', (message) ->
   if message.channel.equals channel
     if not message.author.equals bot.user
