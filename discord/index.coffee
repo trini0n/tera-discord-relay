@@ -26,7 +26,7 @@ if process.platform is 'win32'
 else
   path = "/tmp/#{path}.sock"
 
-ipc = new IPC.client path, (event, args...) ->
+ipc = new IPC.server path, (event, args...) ->
   if channel?
     switch event
       when 'chat'

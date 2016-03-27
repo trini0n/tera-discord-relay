@@ -27,7 +27,7 @@ module.exports = class Discord
       (require 'fs').unlinkSync path
 
     dispatch = game.client.dispatch
-    ipc = new IPC.server path, (event, args...) ->
+    ipc = new IPC.client path, (event, args...) ->
       switch event
         when 'fetch'
           dispatch.toServer 'cRequestRefreshGuildData'
