@@ -12,6 +12,7 @@ escape = (str) ->
     .replace /w{3,}/gi, (match) -> match.split('').join('&#8206;')   # bypass "www"
     .replace /w w w/gi, (match) -> match.split(' ').join('&#8206; ') # bypass "w w w"
     .replace /fag/gi, (match) -> match[0] + '&#8206;' + match[1..]   # bypass "fag"
+    .replace /molest/gi, (match) -> match[0] + '&#8206;' + match[1..] # bypass "molest"
     .replace /\n/g, ' '
     .replace /\t/g, '    '
     .replace /[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '?'
