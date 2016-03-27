@@ -59,6 +59,7 @@ module.exports = class Discord
             message: "<FONT>Discord #gchat users: #{escape list}</FONT>"
 
     myName = false
+    motd = ''
     guildMembers = []
 
     dispatch.hook 'sLogin', (event) ->
@@ -86,6 +87,10 @@ module.exports = class Discord
       ipc.send 'sysmsg', str, params
       return
 
+    dispatch.hook 'sGuildInfo', (event) ->
+      {motd} = event
+      return
+
     dispatch.hook 'sGuildMemberList', (event) ->
       if event.first
         guildMembers = []
@@ -95,6 +100,6 @@ module.exports = class Discord
             guildMembers.push member.name
 
       if event.last
-        ipc.send 'guild', guildMembers
+        ipc.send 'guild', motd, guildMembers
 
       return

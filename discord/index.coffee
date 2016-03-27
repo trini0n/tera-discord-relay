@@ -49,9 +49,9 @@ ipc = new IPC.server path, (event, args...) ->
         bot.sendMessage channel, "[#{author}]: #{message}"
 
       when 'guild'
-        [names] = args
+        [motd, names] = args
         names.sort (a, b) -> a.localeCompare b
-        bot.setChannelTopic channel, 'Online: ' + names.join ', '
+        bot.setChannelTopic channel, "Online: #{names.join ', '}  \nMotD: #{motd}"
 
       when 'userlist'
         [target] = args
