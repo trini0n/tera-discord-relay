@@ -149,7 +149,7 @@ bot.on 'ready', ->
     if 'readMessages' in overwrite.denied
       delete userlist[overwrite.id]
 
-  bot.setStatus 'online', 258
+  bot.setStatus 'online', 'TERA'
   console.log 'routing to #%s (%s)', channel.name, channel.id
 
   ipc.send 'fetch'
