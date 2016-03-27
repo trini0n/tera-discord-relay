@@ -51,7 +51,7 @@ ipc = new IPC.client path, (event, args...) ->
       when 'guild'
         [names] = args
         names.sort (a, b) -> a.localeCompare b
-        bot.setTopic channel, 'Online: ' + names.join ', '
+        bot.setChannelTopic channel, 'Online: ' + names.join ', '
 
       when 'userlist'
         [target] = args
