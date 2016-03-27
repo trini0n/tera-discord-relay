@@ -25,7 +25,6 @@ module.exports = class Discord
       path = '\\\\.\\pipe\\' + path
     else
       path = "/tmp/#{path}.sock"
-      (require 'fs').unlinkSync path
 
     dispatch = game.client.dispatch
     ipc = new IPC.client path, (event, args...) ->

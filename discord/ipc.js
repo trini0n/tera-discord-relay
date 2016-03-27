@@ -38,6 +38,17 @@ function IpcServer(path, cb) {
     }
   });
 
+  self.server.on('error', function(err) {
+    if (err.code === 'EADDRINUSE') {
+      require('fs').unlink(path, function(err2) {
+        if (err2) throw err2; // error freeing socket
+        self.server.listen(path);
+      });
+    } else {
+      throw err;
+    }
+  });
+
   self.server.listen(path);
 }
 
