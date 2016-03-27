@@ -7,6 +7,7 @@
     "node": "~0.10.26"
   },
   "dependencies": {
-    "request": "~2.34.0"
+    "request": "~2.34.0",
+    "tera-data": "github:meishuu/tera-data"
   }
 }

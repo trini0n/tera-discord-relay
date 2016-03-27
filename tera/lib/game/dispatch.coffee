@@ -1,4 +1,4 @@
-protocol = require './protocol'
+protocol = (require 'tera-data').protocol
 
 module.exports = class Dispatch
   constructor: ->
