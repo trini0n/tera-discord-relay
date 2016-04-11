@@ -1,5 +1,4 @@
 IPC = require './ipc'
-emoji = require './emoji'
 
 escape = (str) ->
   str
@@ -35,7 +34,7 @@ module.exports = class Discord
           [author, message] = args
           dispatch.toServer 'cChat',
             channel: 2,
-            message: '<FONT>' + (escape "<#{author}> #{emoji message}") + '</FONT>'
+            message: '<FONT>' + (escape "<#{author}> #{message}") + '</FONT>'
         when 'info'
           [message] = args
           dispatch.toServer 'cChat',

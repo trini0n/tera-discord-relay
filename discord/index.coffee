@@ -1,8 +1,10 @@
 Discord = require 'discord.js'
 IPC = require './ipc'
+emoji = require './lib/emoji.min'
 
 config = require './config.json'
 
+# vars #
 bot = new Discord.Client
 server = null
 channel = null
@@ -10,6 +12,7 @@ entry = null
 guildRole = null
 userlist = {}
 
+# helpers #
 escapeRegExp = (s) -> s.replace /[-/\\^$*+?.()|[\]{}]/g, '\\$&'
 
 unHtml = (s) ->
@@ -20,6 +23,33 @@ unHtml = (s) ->
     .replace /&lt;/gi, '<'
     .replace /&gt;/gi, '>'
 
+emojify = (s) ->
+  emoji.colons_mode = false
+  emoji.replace_mode = 'unified'
+  emoji.replace_colons s
+
+unemojify = do ->
+  shortcuts =
+    broken_heart: '</3'
+    confused: ':-/'
+    frowning: ':('
+    heart: '<3'
+    hearts: '<3'
+    neutral_face: ':|'
+    open_mouth: ':o'
+    smile: ':D'
+    smiley: ':)',
+    stuck_out_tongue: ':P'
+    sunglasses: '8)'
+    unamused: ':s'
+    wink: ';)'
+  regex = new RegExp ':(' + (Object.keys(shortcuts).join '|') + '):', 'gi'
+
+  return (s) ->
+    emoji.colons_mode = true
+    emoji.replace_unified(s).replace regex, (_, $1) -> shortcuts[$1.toLowerCase()]
+
+# ipc #
 path = config['socket-name']
 if process.platform is 'win32'
   path = '\\\\.\\pipe\\' + path
@@ -46,12 +76,12 @@ ipc = new IPC.server path, (event, args...) ->
           message = message.replace regexp, ch.mention()
 
         # send
-        bot.sendMessage channel, "[#{author}]: #{message}"
+        bot.sendMessage channel, "[#{author}]: #{emojify message}"
 
       when 'guild'
         [motd, names] = args
         names.sort (a, b) -> a.localeCompare b
-        bot.setChannelTopic channel, "Online: #{names.join ', '}  \nMotD: #{motd}"
+        bot.setChannelTopic channel, "Online: #{names.join ', '} // MotD: #{emojify motd}"
 
       when 'userlist'
         [target] = args
@@ -93,7 +123,7 @@ ipc = new IPC.server path, (event, args...) ->
             user = params['UserName']
             comment = params['Comment']
             str = "#{user} logged in."
-            str += " Message: #{unHtml comment}" if comment
+            str += " Message: #{emojify unHtml comment}" if comment
             bot.sendMessage channel, str
 
           # guild logout
@@ -103,6 +133,7 @@ ipc = new IPC.server path, (event, args...) ->
 
   return
 
+# bot #
 bot.on 'ready', ->
   console.log 'connected as %s (%s)', bot.user.username, bot.user.id
 
@@ -157,7 +188,7 @@ bot.on 'ready', ->
 bot.on 'message', (message) ->
   if message.channel.equals channel
     if not message.author.equals bot.user
-      str = message.content
+      str = unemojify message.content
         .replace /<@(\d+)>/g, (_, mention) ->
           m = server.members.get 'id', mention
           '@' + (m?.username ? '(???)')
