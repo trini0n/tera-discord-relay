@@ -25,7 +25,8 @@ unHtml = (s) ->
 
 emojify = (s) ->
   emoji.colons_mode = false
-  emoji.replace_mode = 'unified'
+  emoji.replace_mode = 'unified' # use unicode replacement
+  emoji.inits.env = 1 # hack to ensure replace_mode isn't overwritten
   emoji.replace_colons s
 
 unemojify = do ->
