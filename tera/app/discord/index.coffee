@@ -1,5 +1,8 @@
 IPC = require './ipc'
 
+REFRESH_THRESHOLD = 60 * 1000
+REFRESH_TIMER = 15 * 1000
+
 escape = (str) ->
   str
     .replace /"/g, '&quot;'
@@ -59,6 +62,13 @@ module.exports = class Discord
     myName = false
     motd = ''
     guildMembers = []
+    lastUpdate = null
+
+    setInterval (->
+      if lastUpdate and Date.now() - lastUpdate > REFRESH_THRESHOLD
+        dispatch.toServer 'cRequestRefreshGuildData'
+        lastUpdate = Date.now() # prevent spamming
+    ), REFRESH_TIMER
 
     dispatch.hook 'sLogin', (event) ->
       myName = event.name
@@ -87,6 +97,7 @@ module.exports = class Discord
 
     dispatch.hook 'sGuildInfo', (event) ->
       {motd} = event
+      lastUpdate = Date.now()
       return
 
     dispatch.hook 'sGuildMemberList', (event) ->
