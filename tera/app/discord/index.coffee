@@ -43,21 +43,6 @@ module.exports = class Discord
           dispatch.toServer 'cChat',
             channel: 2,
             message: "<FONT>* #{escape message}</FONT>"
-        when 'userlist'
-          [target, lists] = args
-          ###
-          for type, list of lists
-            list.sort (a, b) -> a.localeCompare b
-          list = lists.online.join ', '
-          if lists.offline.length > 0
-            list += '. Offline: ' + lists.offline.join ', '
-          ###
-          list = lists.online.concat lists.offline
-          list.sort (a, b) -> a.localeCompare b
-          list = list.join ', '
-          dispatch.toServer 'cWhisper',
-            target: target
-            message: "<FONT>Discord #gchat users: #{escape list}</FONT>"
 
     myName = false
     motd = ''
@@ -87,7 +72,6 @@ module.exports = class Discord
 
       switch str
         when '@1769', '@1770' # guild login
-          ipc.send 'userlist', params['UserName']
           dispatch.toServer 'cRequestRefreshGuildData'
         when '@260', '@263', '@760', '@761', '@1954' # guild sysmsg
           dispatch.toServer 'cRequestRefreshGuildData'

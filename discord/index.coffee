@@ -84,16 +84,6 @@ ipc = new IPC.server path, (event, args...) ->
         names.sort (a, b) -> a.localeCompare b
         bot.setChannelTopic channel, "Online: #{names.join ', '} // MotD: #{emojify motd}"
 
-      when 'userlist'
-        [target] = args
-        lists =
-          online: []
-          offline: []
-        for id, online of userlist
-          user = server.members.get 'id', id
-          lists[if online then 'online' else 'offline'].push user?.username ? '(#' + id + ')'
-        #ipc.send 'userlist', target, lists
-
       when 'sysmsg'
         [str, params] = args
         switch str
@@ -207,10 +197,8 @@ bot.on 'serverMemberUpdated', (eventServer, user) ->
     roles = server.rolesOfUser user
     if (roles.some (role) -> role.id is guildRole)
       if !userlist[user.id]?
-        online = (user.status isnt 'offline')
-        userlist[user.id] = online
-        if online
-          ipc.send 'info', "@#{user.username} joined ##{channel.name}"
+        userlist[user.id] = (user.status isnt 'offline')
+        ipc.send 'info', "@#{user.username} joined ##{channel.name}"
 
 bot.on 'userUpdated', (oldUser, newUser) ->
   if oldUser.username isnt newUser.username
