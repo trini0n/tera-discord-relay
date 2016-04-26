@@ -82,7 +82,7 @@ ipc = new IPC.server path, (event, args...) ->
       when 'guild'
         [motd, names] = args
         names.sort (a, b) -> a.localeCompare b
-        bot.setChannelTopic channel, "Online: #{names.join ', '} // MotD: #{emojify motd}"
+        bot.setChannelTopic channel, "Online: #{names.join ', '} // MotD: #{emojify unHtml motd}"
 
       when 'sysmsg'
         [str, params] = args
