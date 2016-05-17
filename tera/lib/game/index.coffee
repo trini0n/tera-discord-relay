@@ -12,7 +12,7 @@ Connection = require './connection'
 describe = do ->
   races = ['Human', 'High Elf', 'Aman', 'Castanic', 'Popori', 'Baraka']
   genders = ['Male', 'Female']
-  classes = ['Warrior', 'Lancer', 'Slayer', 'Berserker', 'Sorcerer', 'Archer', 'Priest', 'Mystic', 'Reaper', 'Gunner']
+  classes = ['Warrior', 'Lancer', 'Slayer', 'Berserker', 'Sorcerer', 'Archer', 'Priest', 'Mystic', 'Reaper', 'Gunner', 'Brawler', 'Ninja']
 
   (character) ->
     description = ''
@@ -50,8 +50,8 @@ module.exports = class GameClient
     @client.on 'connect', ->
       # version check
       dispatch.toServer 'cCheckVersion', version: [
-        { index: 0, value: 0x000495A2 }
-        { index: 1, value: 0x00049525 }
+        { index: 0, value: 0x00049D47 }
+        { index: 1, value: 0x0004990A }
       ]
 
       # authorization
@@ -59,7 +59,7 @@ module.exports = class GameClient
         unk1: 0 # ?
         unk2: 0 # ?
         unk3: 2 # ?
-        unk4: 3907 # patch version
+        unk4: 9901 # patch version
         name: name
         ticket: new Buffer ticket
 
