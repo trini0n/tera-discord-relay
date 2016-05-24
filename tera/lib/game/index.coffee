@@ -59,7 +59,7 @@ module.exports = class GameClient
         unk1: 0 # ?
         unk2: 0 # ?
         unk3: 2 # ?
-        unk4: 9901 # patch version
+        unk4: 4206 # patch version
         name: name
         ticket: new Buffer ticket
 
