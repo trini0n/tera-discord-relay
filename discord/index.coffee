@@ -94,42 +94,7 @@ ipc = new IPC.server path, (event, args...) ->
       bot.setChannelTopic channel, "Online: #{names.join ', '} // MotD: #{emojify unHtml motd}"
 
     when 'sysmsg'
-      [str, params] = args
-      switch str
-        # guild invite
-        when '@260'
-          user = params['Name']
-          bot.sendMessage channel, "#{user} joined the guild."
-
-        # guild app accept
-        when '@263'
-          # send to channel
-          from = params['Name1']
-          user = params['Name2']
-          bot.sendMessage channel, "#{from} accepted #{user} into the guild."
-
-        # guild quit
-        when '@760'
-          user = params['UserName']
-          bot.sendMessage channel, "#{user} left the guild."
-
-        # guild kick
-        when '@761'
-          user = params['UserName']
-          bot.sendMessage channel, "#{user} was kicked out of the guild."
-
-        # guild login
-        when '@1769', '@1770'
-          user = params['UserName']
-          comment = params['Comment']
-          str = "#{user} logged in."
-          str += " Message: #{emojify unHtml comment}" if comment
-          bot.sendMessage channel, str
-
-        # guild logout
-        when '@1954'
-          user = params['UserName']
-          bot.sendMessage channel, "#{user} logged out."
+      bot.sendMessage channel, args
 
   return
 

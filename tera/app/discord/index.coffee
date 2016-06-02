@@ -1,3 +1,4 @@
+Sysmsg = require 'sysmsg'
 IPC = require './ipc'
 
 REFRESH_THRESHOLD = 60 * 1000
@@ -29,10 +30,11 @@ module.exports = class Discord
       path = "/tmp/#{path}.sock"
 
     dispatch = game.client.dispatch
+    sysmsg = new Sysmsg dispatch
     ipc = new IPC.client path, (event, args...) ->
       switch event
         when 'fetch'
-          dispatch.toServer 'cRequestRefreshGuildData'
+          dispatch.toServer 'cRequestGuildMemberList'
         when 'chat'
           [author, message] = args
           dispatch.toServer 'cChat',
@@ -51,7 +53,7 @@ module.exports = class Discord
 
     setInterval (->
       if lastUpdate and Date.now() - lastUpdate > REFRESH_THRESHOLD
-        dispatch.toServer 'cRequestRefreshGuildData'
+        dispatch.toServer 'cRequestGuildMemberList'
         lastUpdate = Date.now() # prevent spamming
     ), REFRESH_TIMER
 
@@ -63,21 +65,36 @@ module.exports = class Discord
         ipc.send 'chat', event.authorName, event.message
         return
 
-    dispatch.hook 'sSystemMessage', (event) ->
-      args = event.message.split '\x0B'
-      str = args.shift()
-      params = {}
-      while args.length > 0
-        params[args.shift()] = args.shift()
+    sysmsg.on 'SMT_GC_MSGBOX_APPLYLIST_1', (params) ->
+      ipc.send 'sysmsg', "#{params['Name']} joined the guild."
+      dispatch.toServer 'cRequestGuildMemberList'
 
-      switch str
-        when '@1769', '@1770' # guild login
-          dispatch.toServer 'cRequestRefreshGuildData'
-        when '@260', '@263', '@760', '@761', '@1954' # guild sysmsg
-          dispatch.toServer 'cRequestRefreshGuildData'
+    sysmsg.on 'SMT_GC_MSGBOX_APPLYRESULT_1', (params) ->
+      ipc.send 'sysmsg', "#{params['Name1']} accepted #{params['Name2']} into the guild."
+      dispatch.toServer 'cRequestGuildMemberList'
 
-      ipc.send 'sysmsg', str, params
-      return
+    sysmsg.on 'SMT_GUILD_LOG_LEAVE', (params) ->
+      ipc.send 'sysmsg', "#{params['UserName']} left the guild."
+      dispatch.toServer 'cRequestGuildMemberList'
+
+    sysmsg.on 'SMT_GUILD_LOG_BAN', (params) ->
+      ipc.send 'sysmsg', "#{params['UserName']} was kicked out of the guild."
+      dispatch.toServer 'cRequestGuildMemberList'
+
+    sysmsg.on 'SMT_GUILD_MEMBER_LOGON', (params) ->
+      ipc.send 'sysmsg', "#{params['UserName']} logged in. Message: #{params['Comment']}"
+      dispatch.toServer 'cRequestGuildMemberList'
+
+    sysmsg.on 'SMT_GUILD_MEMBER_LOGON_NO_MESSAGE', (params) ->
+      ipc.send 'sysmsg', "#{params['UserName']} logged in."
+      dispatch.toServer 'cRequestGuildMemberList'
+
+    sysmsg.on 'SMT_GUILD_MEMBER_LOGOUT', (params) ->
+      ipc.send 'sysmsg', "#{params['UserName']} logged out."
+      dispatch.toServer 'cRequestGuildMemberList'
+
+    sysmsg.on 'SMT_GC_SYSMSG_GUILD_CHIEF_CHANGED', (params) ->
+      ipc.send 'sysmsg', "#{params['Name']} is now the Guild Master."
 
     dispatch.hook 'sGuildInfo', (event) ->
       {motd} = event

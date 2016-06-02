@@ -1,0 +1,8 @@
+{
+  "name": "sysmsg",
+  "version": "0.1.0",
+  "description": "Easy handling of system messages.",
+  "author": "meishu",
+  "license": "ISC",
+  "main": "index.js"
+}
