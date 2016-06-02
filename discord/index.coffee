@@ -5,7 +5,7 @@ emoji = require './lib/emoji.min'
 config = require './config.json'
 
 # vars #
-bot = new Discord.Client
+bot = new Discord.Client autoReconnect: true
 server = null
 channel = null
 entry = null
@@ -58,69 +58,78 @@ else
   path = "/tmp/#{path}.sock"
 
 ipc = new IPC.server path, (event, args...) ->
-  if channel?
-    switch event
-      when 'chat'
-        [author, message] = args
+  return if !channel?
 
-        # convert HTML to text
-        message = unHtml message
+  switch event
+    when 'chat'
+      [author, message] = args
 
-        # convert @mention
-        for user in server.members
-          regexp = new RegExp (escapeRegExp '@' + user.username), 'gi'
+      # convert HTML to text
+      message = unHtml message
+
+      # convert @mention
+      # first - nicknames
+      for user in server.members
+        d = server.detailsOf user
+        if d.nick?
+          regexp = new RegExp ('@' + escapeRegExp d.nick), 'gi'
           message = message.replace regexp, user.mention()
 
-        # convert #channel
-        for ch in server.channels when ch.type is 'text'
-          regexp = new RegExp (escapeRegExp '#' + ch.name), 'gi'
-          message = message.replace regexp, ch.mention()
+      # second - usernames
+      for user in server.members
+        regexp = new RegExp ('@' + escapeRegExp user.username), 'gi'
+        message = message.replace regexp, user.mention()
 
-        # send
-        bot.sendMessage channel, "[#{author}]: #{emojify message}"
+      # convert #channel
+      for ch in server.channels when ch.type is 'text'
+        regexp = new RegExp (escapeRegExp '#' + ch.name), 'gi'
+        message = message.replace regexp, ch.mention()
 
-      when 'guild'
-        [motd, names] = args
-        names.sort (a, b) -> a.localeCompare b
-        bot.setChannelTopic channel, "Online: #{names.join ', '} // MotD: #{emojify unHtml motd}"
+      # send
+      bot.sendMessage channel, "[#{author}]: #{emojify message}"
 
-      when 'sysmsg'
-        [str, params] = args
-        switch str
-          # guild invite
-          when '@260'
-            user = params['Name']
-            bot.sendMessage channel, "#{user} joined the guild."
+    when 'guild'
+      [motd, names] = args
+      names.sort (a, b) -> a.localeCompare b
+      bot.setChannelTopic channel, "Online: #{names.join ', '} // MotD: #{emojify unHtml motd}"
 
-          # guild app accept
-          when '@263'
-            # send to channel
-            from = params['Name1']
-            user = params['Name2']
-            bot.sendMessage channel, "#{from} accepted #{user} into the guild."
+    when 'sysmsg'
+      [str, params] = args
+      switch str
+        # guild invite
+        when '@260'
+          user = params['Name']
+          bot.sendMessage channel, "#{user} joined the guild."
 
-          # guild quit
-          when '@760'
-            user = params['UserName']
-            bot.sendMessage channel, "#{user} left the guild."
+        # guild app accept
+        when '@263'
+          # send to channel
+          from = params['Name1']
+          user = params['Name2']
+          bot.sendMessage channel, "#{from} accepted #{user} into the guild."
 
-          # guild kick
-          when '@761'
-            user = params['UserName']
-            bot.sendMessage channel, "#{user} was kicked out of the guild."
+        # guild quit
+        when '@760'
+          user = params['UserName']
+          bot.sendMessage channel, "#{user} left the guild."
 
-          # guild login
-          when '@1769', '@1770'
-            user = params['UserName']
-            comment = params['Comment']
-            str = "#{user} logged in."
-            str += " Message: #{emojify unHtml comment}" if comment
-            bot.sendMessage channel, str
+        # guild kick
+        when '@761'
+          user = params['UserName']
+          bot.sendMessage channel, "#{user} was kicked out of the guild."
 
-          # guild logout
-          when '@1954'
-            user = params['UserName']
-            bot.sendMessage channel, "#{user} logged out."
+        # guild login
+        when '@1769', '@1770'
+          user = params['UserName']
+          comment = params['Comment']
+          str = "#{user} logged in."
+          str += " Message: #{emojify unHtml comment}" if comment
+          bot.sendMessage channel, str
+
+        # guild logout
+        when '@1954'
+          user = params['UserName']
+          bot.sendMessage channel, "#{user} logged out."
 
   return
 
@@ -177,16 +186,22 @@ bot.on 'ready', ->
   ipc.send 'fetch'
 
 bot.on 'message', (message) ->
-  if message.channel.equals channel
-    if not message.author.equals bot.user
-      str = unemojify message.content
-        .replace /<@(\d+)>/g, (_, mention) ->
-          m = server.members.get 'id', mention
-          '@' + (m?.username ? '(???)')
-        .replace /<#(\d+)>/g, (_, mention) ->
-          m = server.channels.get 'id', mention
-          '#' + (m?.name ? '(???)')
-      ipc.send 'chat', message.author.username, str
+  return unless message.channel.equals channel
+  return if message.author.equals bot.user
+
+  str = unemojify message.content
+    .replace /<@!?(\d+)>/g, (_, mention) ->
+      m = server.members.get 'id', mention
+      d = server.detailsOf m
+      '@' + (d?.nick or m?.username or '(???)')
+    .replace /<#(\d+)>/g, (_, mention) ->
+      m = server.channels.get 'id', mention
+      '#' + (m?.name or '(???)')
+
+  u = message.author
+  d = server.detailsOf u
+  author = d?.nick or u?.username or '(???)'
+  ipc.send 'chat', author, str
 
 bot.on 'serverNewMember', (eventServer, user) ->
   if entry? and eventServer.equals server
@@ -201,8 +216,10 @@ bot.on 'serverMemberUpdated', (eventServer, user) ->
         ipc.send 'info', "@#{user.username} joined ##{channel.name}"
 
 bot.on 'userUpdated', (oldUser, newUser) ->
-  if oldUser.username isnt newUser.username
-    ipc.send 'info', "@#{oldUser.username} changed name to @#{newUser.username}"
+  d = server.detailsOf newUser
+  return if d? and d.nick?
+  return if oldUser.username is newUser.username
+  ipc.send 'info', "@#{oldUser.username} changed name to @#{newUser.username}"
 
 bot.on 'disconnected', ->
   console.log 'disconnected'
