@@ -1,8 +1,12 @@
 Sysmsg = require 'sysmsg'
+TeraStrings = require 'tera-strings'
 IPC = require './ipc'
 
 REFRESH_THRESHOLD = 60 * 1000
 REFRESH_TIMER = 15 * 1000
+
+conv = (s) ->
+  TeraStrings(s) || '(???)'
 
 escape = (str) ->
   str
@@ -48,6 +52,7 @@ module.exports = class Discord
 
     myName = false
     motd = ''
+    allGuildies = []
     guildMembers = []
     lastUpdate = null
 
@@ -65,6 +70,9 @@ module.exports = class Discord
         ipc.send 'chat', event.authorName, event.message
         return
 
+    #################
+    # Guild Notices #
+    #################
     sysmsg.on 'SMT_GC_MSGBOX_APPLYLIST_1', (params) ->
       ipc.send 'sysmsg', "#{params['Name']} joined the guild."
       dispatch.toServer 'cRequestGuildMemberList'
@@ -96,6 +104,27 @@ module.exports = class Discord
     sysmsg.on 'SMT_GC_SYSMSG_GUILD_CHIEF_CHANGED', (params) ->
       ipc.send 'sysmsg', "#{params['Name']} is now the Guild Master."
 
+    sysmsg.on 'SMT_ACCOMPLISH_ACHIEVEMENT_GRADE_GUILD', (params) ->
+      ipc.send 'sysmsg', "#{params['name']} earned a #{conv params['grade']}."
+
+    ################
+    # Misc Notices #
+    ################
+    sysmsg.on 'SMT_MAX_ENCHANT_SUCCEED', (params) ->
+      if params['UserName'] in allGuildies
+        message = "#{params['UserName']} has successfully enchanted"
+        message += " (+#{params['Added']}) <#{conv params['ItemName']}>."
+        ipc.send 'sysmsg', message
+
+    sysmsg.on 'SMT_GACHA_REWARD', (params) ->
+      if params['UserName'] in allGuildies
+        message = "#{params['UserName']} obtained <#{conv params['randomItemName']}> x"
+        message += " #{params['randomItemCount']} from <#{conv params['gachaItemName']}>."
+        ipc.send 'sysmsg', message
+
+    ###############
+    # guild hooks #
+    ###############
     dispatch.hook 'sGuildInfo', (event) ->
       {motd} = event
       lastUpdate = Date.now()
@@ -103,9 +132,11 @@ module.exports = class Discord
 
     dispatch.hook 'sGuildMemberList', (event) ->
       if event.first
+        allGuildies = []
         guildMembers = []
 
       for member in event.members
+        allGuildies.push member.name
         if member.status isnt 2 and member.name isnt myName
             guildMembers.push member.name
 

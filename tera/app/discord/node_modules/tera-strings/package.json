@@ -1,0 +1,8 @@
+{
+  "name": "tera-strings",
+  "version": "0.1.0",
+  "description": "Easily convert TERA localized strings.",
+  "author": "meishu",
+  "license": "ISC",
+  "main": "index.js"
+}
