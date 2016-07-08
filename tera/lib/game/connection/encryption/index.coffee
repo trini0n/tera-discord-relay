@@ -127,13 +127,13 @@ class Session
     t1 = new Buffer 128
     t2 = new Buffer 128
 
-    shiftKey t1, s1, 31
+    shiftKey t1, s1, 67
     xorKey t2, t1, c1
-    shiftKey t1, c2, 17, false
+    shiftKey t1, c2, 29, false
     xorKey t2, t1, t2
     @decryptor.generate t2
 
-    shiftKey t1, s2, 79
+    shiftKey t1, s2, 41
     @decryptor.apply t1, 128
     @encryptor.generate t1[0...128]
     return
