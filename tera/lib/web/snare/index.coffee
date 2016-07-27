@@ -30,7 +30,7 @@ module.exports = (callback) ->
     # retrieve vals
     FLRTD = body.match(/"FLRTD","(.+?)"/i)[1]
     IGGY = body.match(/"IGGY","(.+?)"/i)[1]
-    JSSRC = base64.decode body.match(/"JSSRC",_i_p\.__if_aq\("(.+?)"\)/i)[1]
+    JSSRC = base64.decode body.match(/"JSSRC",_i_[a-z]+\.__if_[a-z]+\("(.+?)"\)/i)[1]
     SVRTIME = body.match(/"SVRTIME","(.+?)"/i)[1]
 
     # generate time
@@ -74,7 +74,7 @@ module.exports = (callback) ->
     data = '0400' + base64.encode des.encrypt key, serialized
 
     # get url of next
-    next = base64.decode body.match(/"src",_i_p\.__if_aq\("(.+?)"\)/i)[1]
+    next = base64.decode body.match(/"src",_i_[a-z]+\.__if_[a-z]+\("(.+?)"\)/i)[1]
     request next, (e, res, body) ->
       if e
         console.warn '[snare.js] failed to retrieve: ' + next
