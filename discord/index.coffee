@@ -94,7 +94,8 @@ ipc = new IPC.server path, (event, args...) ->
       bot.setChannelTopic channel, "Online: #{names.join ', '} // MotD: #{emojify unHtml motd}"
 
     when 'sysmsg'
-      bot.sendMessage channel, args
+      [message] = args
+      bot.sendMessage channel, message
 
   return
 
