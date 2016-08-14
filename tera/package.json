@@ -1,13 +1,13 @@
 {
   "name": "tera-bot",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "meishu",
-  "description": "TERA broker bot",
+  "description": "Headless client for TERA",
   "engines": {
-    "node": "~0.10.26"
+    "node": ">=4.0.0"
   },
   "dependencies": {
-    "request": "~2.34.0",
+    "request": "^2.74.0",
     "tera-data": "github:meishuu/tera-data"
   }
 }
