@@ -50,8 +50,8 @@ module.exports = class GameClient
     @client.on 'connect', ->
       # version check
       dispatch.toServer 'cCheckVersion', version: [
-        { index: 0, value: 0x0004A14F }
-        { index: 1, value: 0x000499E8 }
+        { index: 0, value: 0x00049E48 }
+        { index: 1, value: 0x0004A052 }
       ]
 
       # authorization
@@ -59,7 +59,7 @@ module.exports = class GameClient
         unk1: 0 # ?
         unk2: 0 # ?
         unk3: 2 # ?
-        unk4: 4503 # patch version
+        unk4: 4605 # patch version
         name: name
         ticket: new Buffer ticket
 
