@@ -1,0 +1,8 @@
+{ "socket-name": "tera-discord-ipc"
+, "token": "Discord bot token"
+, "email": "(optional if using token)"
+, "pass": "(optional if using token)"
+, "server-id": "111222333444555666"
+, "channel-id": "gchat"
+, "modules": {}
+}

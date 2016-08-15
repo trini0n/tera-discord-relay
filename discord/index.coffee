@@ -1,16 +1,21 @@
+fs = require 'fs'
+
 Discord = require 'discord.js'
 IPC = require './ipc'
 emoji = require './lib/emoji.min'
 
-config = require './config.json'
+# config #
+fn = process.argv[2]
+if !fn?
+  console.error 'please specify config file'
+  process.exit 1
+
+config = JSON.parse fs.readFileSync fn, 'utf8'
 
 # vars #
 bot = new Discord.Client autoReconnect: true
 server = null
 channel = null
-entry = null
-guildRole = null
-userlist = {}
 
 # helpers #
 escapeRegExp = (s) -> s.replace /[-/\\^$*+?.()|[\]{}]/g, '\\$&'
@@ -85,6 +90,11 @@ ipc = new IPC.server path, (event, args...) ->
         regexp = new RegExp (escapeRegExp '#' + ch.name), 'gi'
         message = message.replace regexp, ch.mention()
 
+      # convert &role
+      for role in server.roles
+        regexp = new RegExp (escapeRegExp '@' + role.name), 'gi'
+        message = message.replace regexp, role.mention()
+
       # send
       bot.sendMessage channel, "[#{author}]: #{emojify message}"
 
@@ -109,42 +119,17 @@ bot.on 'ready', ->
     console.error 'servers:'
     for s in bot.servers
       console.error '- %s (%s)', s.name, s.id
-    bog.logout()
+    bot.logout()
     return
 
-  channel = server.channels.get 'name', config['gchat-channel']
+  channel = server.channels.get 'id', config['channel-id']
   if !channel?
-    console.error 'gchat channel "%s" not found', config['gchat-channel']
+    console.error 'channel "%s" not found', config['channel-id']
+    console.error 'channels:'
+    for c in server.channels
+      console.error '- #%s (%s)', c.name, c.id
     bot.logout()
     return
-
-  entry = server.channels.get 'name', config['entry-channel']
-  if !entry?
-    console.warn 'entry channel "%s" not found', config['entry-channel']
-
-  botRoles = server.rolesOfUser bot.user
-  # guild role is the first role that the bot does not have with explicit read to the channel
-  for overwrite in channel.permissionOverwrites when overwrite.type is 'role'
-    if 'readMessages' in overwrite.allowed
-      if not (botRoles.some (role) -> role.id is overwrite.id)
-        r = server.roles.get 'id', overwrite.id
-        console.log 'using guild role %s (%s)', r.name, r.id
-        guildRole = r.id
-
-  if !guildRole?
-    console.log 'guild role not found'
-    bot.logout()
-    return
-
-  console.log 'fetching users...'
-  for user in server.members
-    roles = server.rolesOfUser user
-    if (roles.some (role) -> role.id is guildRole)
-      userlist[user.id] = (user.status isnt 'offline')
-
-  for overwrite in channel.permissionOverwrites when overwrite.type is 'member'
-    if 'readMessages' in overwrite.denied
-      delete userlist[overwrite.id]
 
   bot.setStatus 'online', 'TERA'
   console.log 'routing to #%s (%s)', channel.name, channel.id
@@ -163,29 +148,16 @@ bot.on 'message', (message) ->
     .replace /<#(\d+)>/g, (_, mention) ->
       m = server.channels.get 'id', mention
       '#' + (m?.name or '(???)')
+    .replace /<@&(\d+)>/g, (_, mention) ->
+      m = server.roles.get 'id', mention
+      '@' + (m?.name or '(???)')
+    .replace /<:(\w+):(\d+)>/g, (_, mention) ->
+      ':' + mention + ':'
 
   u = message.author
   d = server.detailsOf u
   author = d?.nick or u?.username or '(???)'
   ipc.send 'chat', author, str
-
-bot.on 'serverNewMember', (eventServer, user) ->
-  if entry? and eventServer.equals server
-    bot.sendMessage entry, "@everyone please give #{user} a warm welcome!"
-
-bot.on 'serverMemberUpdated', (eventServer, user) ->
-  if eventServer.equals server
-    roles = server.rolesOfUser user
-    if (roles.some (role) -> role.id is guildRole)
-      if !userlist[user.id]?
-        userlist[user.id] = (user.status isnt 'offline')
-        ipc.send 'info', "@#{user.username} joined ##{channel.name}"
-
-bot.on 'userUpdated', (oldUser, newUser) ->
-  d = server.detailsOf newUser
-  return if d? and d.nick?
-  return if oldUser.username is newUser.username
-  ipc.send 'info', "@#{oldUser.username} changed name to @#{newUser.username}"
 
 bot.on 'disconnected', ->
   console.log 'disconnected'
@@ -195,4 +167,7 @@ bot.on 'warn', (warn) ->
   console.warn warn
 
 console.log 'connecting...'
-bot.login config['email'], config['password']
+if config['token']
+  bot.loginWithToken config['token']
+else
+  bot.login config['email'], config['pass']
