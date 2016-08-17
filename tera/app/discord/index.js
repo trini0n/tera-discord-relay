@@ -105,8 +105,7 @@ module.exports = function Discord(dispatch, config) {
 
   dispatch.hook('sWhisper', event => {
     if (event.recipient === myName) {
-      const author = { id: event.player.low, name: event.author };
-      ipc.send('whisper', author, event.message);
+      ipc.send('whisper', event.author, event.message);
     }
   });
 
