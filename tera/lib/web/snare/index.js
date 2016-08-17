@@ -1,3 +1,5 @@
+'use strict';
+
 // helper functions
 const des = require('./des');
 
