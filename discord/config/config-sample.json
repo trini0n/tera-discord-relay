@@ -3,6 +3,8 @@
 , "email": "(optional if using token)"
 , "pass": "(optional if using token)"
 , "server-id": "111222333444555666"
-, "channel-id": "gchat"
-, "modules": {}
+, "channels":
+  { "gchat": "111222333444555666"
+  , "entry": "(optional; remove entire line to disable)"
+  }
 }
