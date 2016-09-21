@@ -13,18 +13,36 @@ function conv(s) {
   return TeraStrings(s) || '(???)';
 }
 
+function escapeRegExp(s) {
+  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+function escapeHtml(str) {
+  const entities = {
+    '"': 'quot',
+    '&': 'amp',
+    '<': 'lt',
+    '>': 'gt',
+  };
+
+  return str.replace(/["&<>]/g, e => `&${entities[e]};`);
+}
+
 function escape(str) {
-  return (str
-    .replace(/"/g, '&quot;')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\.(?=com)/gi, '.&#8206;')
+  const words = [
+    '.com',
+    'fag',
+    'molest',
+    'nigg',
+  ];
+
+  const wordRegex = new RegExp('(' + words.map(escapeRegExp).join('|') + ')', 'gi');
+
+  return (escapeHtml(str)
+    .replace(wordRegex, match => match[0] + '&#8206;' + match.slice(1))
     .replace(/w-w/gi, match => match.split('-').join('-&#8206;'))
     .replace(/w{3,}/gi, match => match.split('').join('&#8206;'))
     .replace(/w w w/gi, match => match.split(' ').join('&#8206; '))
-    .replace(/fag/gi, match => match[0] + '&#8206;' + match.slice(1))
-    .replace(/molest/gi, match => match[0] + '&#8206;' + match.slice(1))
     .replace(/\n/g, ' ').replace(/\t/g, '    ')
     .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '?')
     .replace(/[^\x20-\x7E]/g, '?')
@@ -160,19 +178,19 @@ module.exports = function Discord(dispatch, config) {
    ****************/
   sysmsg.on('SMT_MAX_ENCHANT_SUCCEED', function(params) {
     if (allGuildies.indexOf(params['UserName']) !== -1) {
-      ipc.send('sysmsg',
+      ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} has successfully enchanted ` +
         `(+${params['Added']}) <${conv(params['ItemName'])}>.`
-      );
+      ));
     }
   });
 
   sysmsg.on('SMT_GACHA_REWARD', function(params) {
     if (allGuildies.indexOf(params['UserName']) !== -1) {
-      ipc.send('sysmsg',
+      ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} obtained <${conv(params['randomItemName'])}> x ` +
         `${params['randomItemCount']} from <${conv(params['gachaItemName'])}>.`
-      );
+      ));
     }
   });
 

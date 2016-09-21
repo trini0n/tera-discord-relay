@@ -7,15 +7,21 @@ function escapeRegExp(s) {
   return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
-function unHtml(s) {
-  return (s
-    .replace(/<.*?>/g, '')
-    .replace(/&quot;/gi, '"')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-  );
-}
+const unHtml = (() => {
+  const replacements = {
+    'quot': '"',
+    'amp': '&',
+    'lt': '<',
+    'gt': '>',
+  };
+
+  return function unHtml(s) {
+    return (s
+      .replace(/<.*?>/g, '')
+      .replace(/&(quot|amp|lt|gt);/g, (_, $1) => replacements[$1])
+    );
+  };
+})();
 
 function emojify(s) {
   emoji.colons_mode = false;
