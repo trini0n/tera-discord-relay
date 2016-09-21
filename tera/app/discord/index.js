@@ -130,53 +130,81 @@ module.exports = function Discord(dispatch, config) {
   /*****************
    * Guild Notices *
    *****************/
-  sysmsg.on('SMT_GC_MSGBOX_APPLYLIST_1', function(params) {
+  sysmsg.on('smtGcMsgboxApplylist1', function(params) {
     ipc.send('sysmsg', `${params['Name']} joined the guild.`);
     dispatch.toServer('cRequestGuildMemberList');
   });
 
-  sysmsg.on('SMT_GC_MSGBOX_APPLYRESULT_1', function(params) {
+  sysmsg.on('smtGcMsgboxApplyresult1', function(params) {
     ipc.send('sysmsg', `${params['Name1']} accepted ${params['Name2']} into the guild.`);
     dispatch.toServer('cRequestGuildMemberList');
   });
 
-  sysmsg.on('SMT_GUILD_LOG_LEAVE', function(params) {
-    ipc.send('sysmsg', `${params['UserName']} left the guild.`);
+  sysmsg.on('smtGuildLogLeave', function(params) {
+    ipc.send('sysmsg', `${params['UserName']} has left the guild.`);
     dispatch.toServer('cRequestGuildMemberList');
   });
 
-  sysmsg.on('SMT_GUILD_LOG_BAN', function(params) {
+  sysmsg.on('smtGuildLogBan', function(params) {
     ipc.send('sysmsg', `${params['UserName']} was kicked out of the guild.`);
     dispatch.toServer('cRequestGuildMemberList');
   });
 
-  sysmsg.on('SMT_GUILD_MEMBER_LOGON', function(params) {
+  sysmsg.on('smtGuildMemberLogon', function(params) {
     ipc.send('sysmsg', `${params['UserName']} logged in. Message: ${params['Comment']}`);
     dispatch.toServer('cRequestGuildMemberList');
   });
 
-  sysmsg.on('SMT_GUILD_MEMBER_LOGON_NO_MESSAGE', function(params) {
+  sysmsg.on('smtGuildMemberLogonNoMessage', function(params) {
     ipc.send('sysmsg', `${params['UserName']} logged in.`);
     dispatch.toServer('cRequestGuildMemberList');
   });
 
-  sysmsg.on('SMT_GUILD_MEMBER_LOGOUT', function(params) {
+  sysmsg.on('smtGuildMemberLogout', function(params) {
     ipc.send('sysmsg', `${params['UserName']} logged out.`);
     dispatch.toServer('cRequestGuildMemberList');
   });
 
-  sysmsg.on('SMT_GC_SYSMSG_GUILD_CHIEF_CHANGED', function(params) {
+  sysmsg.on('smtGcSysmsgGuildChiefChanged', function(params) {
     ipc.send('sysmsg', `${params['Name']} is now the Guild Master.`);
   });
 
-  sysmsg.on('SMT_ACCOMPLISH_ACHIEVEMENT_GRADE_GUILD', function(params) {
+  sysmsg.on('smtAccomplishAchievementGradeGuild', function(params) {
     ipc.send('sysmsg', `${params['name']} earned a ${conv(params['grade'])}.`);
+  });
+
+  sysmsg.on('smtGquestNormalAccept', function(params) {
+    ipc.send('sysmsg', `Received ${params['guildQuestName']}.`);
+  });
+
+  sysmsg.on('smtGquestNormalCancel', function(params) {
+    ipc.send('sysmsg', `${params['userName']} canceled ${params['guildQuestName']}.`);
+  });
+
+  sysmsg.on('smtGquestNormalComplete', function(params) {
+    ipc.send('sysmsg', `Completed ${params['guildQuestName']}.`);
+  });
+
+  sysmsg.on('smtGquestNormalFailOvertime', function(params) {
+    ipc.send('sysmsg', `Failed ${params['guildQuestName']}.`);
+  });
+
+  sysmsg.on('smtGquestNormalEndNotice', function(params) {
+    ipc.send('sysmsg', `The current guild quest ends in 10min.`);
+  });
+
+  sysmsg.on('smtLearnGuildSkillSuccess', function(params) {
+    ipc.send('sysmsg', `Your guild has learned a new skill.`);
+  });
+
+  sysmsg.on('smtGuildIncentiveSuccess', function(params) {
+    ipc.send('sysmsg', `Guild funds are delivered via parcel post.`);
   });
 
   /****************
    * Misc Notices *
    ****************/
-  sysmsg.on('SMT_MAX_ENCHANT_SUCCEED', function(params) {
+  sysmsg.on('smtMaxEnchantSucceed', function(params) {
     if (allGuildies.indexOf(params['UserName']) !== -1) {
       ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} has successfully enchanted ` +
@@ -185,7 +213,7 @@ module.exports = function Discord(dispatch, config) {
     }
   });
 
-  sysmsg.on('SMT_GACHA_REWARD', function(params) {
+  sysmsg.on('smtGachaReward', function(params) {
     if (allGuildies.indexOf(params['UserName']) !== -1) {
       ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} obtained <${conv(params['randomItemName'])}> x ` +
