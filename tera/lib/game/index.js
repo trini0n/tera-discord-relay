@@ -49,8 +49,8 @@ function GameClient(name, ticket, desiredCharacter) {
     // version check
     dispatch.toServer('cCheckVersion', {
       version: [
-        { index: 0, value: 0x00049E48 },
-        { index: 1, value: 0x0004A052 },
+        { index: 0, value: 0x0004AA91 },
+        { index: 1, value: 0x0004AF1B },
       ]
     });
 
@@ -59,7 +59,7 @@ function GameClient(name, ticket, desiredCharacter) {
       unk1: 0,
       unk2: 0,
       unk3: 2,
-      unk4: 4605, // patch version
+      unk4: 4702, // patch version
       name: name,
       ticket: new Buffer(ticket),
     });
