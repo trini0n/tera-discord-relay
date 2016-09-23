@@ -67,7 +67,9 @@ module.exports = function Discord(dispatch, config) {
 
     switch (event) {
       case 'fetch':
-        dispatch.toServer('cRequestGuildMemberList');
+        for (let typename in GINFO_TYPE) {
+          requestGuildInfo(GINFO_TYPE[typename]);
+        }
         break;
 
       case 'chat':
@@ -98,16 +100,48 @@ module.exports = function Discord(dispatch, config) {
     }
   });
 
+  let guildId = 0;
   let myName = false;
   let motd = '';
   let allGuildies = [];
   let guildMembers = [];
-  let lastUpdate = null;
+
+  const GINFO_TYPE = {
+    details: 2,
+    members: 5,
+    quests: 6,
+  };
+
+  const requestGuildInfo = (() => {
+    const timers = {};
+
+    function doRequest(type) {
+      dispatch.toServer('cRequestGuildInfo', { guildId, type });
+      timers[type] = null;
+    }
+
+    return function requestGuildInfo(type, immediate = false) {
+      if (!immediate) {
+        if (!timers[type]) {
+          timers[type] = setTimeout(doRequest, 100, type);
+        }
+      } else {
+        if (timers[type]) clearTimeout(timers[type]);
+        doRequest(type); // will unset timers[type]
+      }
+    };
+  })();
+
+  // auto updates
+  const lastUpdate = {};
 
   setInterval(() => {
-    if (lastUpdate && Date.now() - lastUpdate > REFRESH_THRESHOLD) {
-      dispatch.toServer('cRequestGuildMemberList');
-      lastUpdate = Date.now();
+    for (let typename in GINFO_TYPE) {
+      const type = GINFO_TYPE[typename];
+      if (lastUpdate[type] && Date.now() - lastUpdate[type] > REFRESH_THRESHOLD) {
+        lastUpdate[type] = Date.now();
+        requestGuildInfo(type);
+      }
     }
   }, REFRESH_TIMER);
 
@@ -132,37 +166,37 @@ module.exports = function Discord(dispatch, config) {
    *****************/
   sysmsg.on('smtGcMsgboxApplylist1', function(params) {
     ipc.send('sysmsg', `${params['Name']} joined the guild.`);
-    dispatch.toServer('cRequestGuildMemberList');
+    requestGuildInfo(GINFO_TYPE.members);
   });
 
   sysmsg.on('smtGcMsgboxApplyresult1', function(params) {
     ipc.send('sysmsg', `${params['Name1']} accepted ${params['Name2']} into the guild.`);
-    dispatch.toServer('cRequestGuildMemberList');
+    requestGuildInfo(GINFO_TYPE.members);
   });
 
   sysmsg.on('smtGuildLogLeave', function(params) {
     ipc.send('sysmsg', `${params['UserName']} has left the guild.`);
-    dispatch.toServer('cRequestGuildMemberList');
+    requestGuildInfo(GINFO_TYPE.members);
   });
 
   sysmsg.on('smtGuildLogBan', function(params) {
     ipc.send('sysmsg', `${params['UserName']} was kicked out of the guild.`);
-    dispatch.toServer('cRequestGuildMemberList');
+    requestGuildInfo(GINFO_TYPE.members);
   });
 
   sysmsg.on('smtGuildMemberLogon', function(params) {
     ipc.send('sysmsg', `${params['UserName']} logged in. Message: ${params['Comment']}`);
-    dispatch.toServer('cRequestGuildMemberList');
+    requestGuildInfo(GINFO_TYPE.members);
   });
 
   sysmsg.on('smtGuildMemberLogonNoMessage', function(params) {
     ipc.send('sysmsg', `${params['UserName']} logged in.`);
-    dispatch.toServer('cRequestGuildMemberList');
+    requestGuildInfo(GINFO_TYPE.members);
   });
 
   sysmsg.on('smtGuildMemberLogout', function(params) {
     ipc.send('sysmsg', `${params['UserName']} logged out.`);
-    dispatch.toServer('cRequestGuildMemberList');
+    requestGuildInfo(GINFO_TYPE.members);
   });
 
   sysmsg.on('smtGcSysmsgGuildChiefChanged', function(params) {
@@ -176,6 +210,30 @@ module.exports = function Discord(dispatch, config) {
   /****************
    * Guild Quests *
    ****************/
+  dispatch.hook('sGuildQuestList', event => {
+    lastUpdate[GINFO_TYPE.quests] = Date.now();
+
+    const quest = event.quests[0];
+    if (!quest.accepted) {
+      ipc.send('quest', false);
+      return;
+    }
+
+    const name = conv(quest.name);
+
+    if (quest.targets.length === 1 && name != 'Crafting Supplies') {
+      const target = quest.targets[0];
+      ipc.send('quest', { name, completed: target.completed, total: target.total });
+    } else {
+      const targets = quest.targets.map(target => ({
+        name: conv(`@item:${target.info2}`),
+        completed: target.completed,
+        total: target.total,
+      }));
+      ipc.send('quest', { name, targets });
+    }
+  });
+
   dispatch.hook('sUpdateGuildQuestSystemMsg', event => {
     const quest = conv(`@GuildQuest:${event.quest}001`);
 
@@ -187,15 +245,26 @@ module.exports = function Discord(dispatch, config) {
       case 'smtGquestNormalComplete':
         ipc.send('sysmsg', `Completed **${quest}**.`);
         break;
+
+      // smtGquestOccupyAccept
+      // smtGquestOccupyComplete
     }
+
+    requestGuildInfo(GINFO_TYPE.quests);
+  });
+
+  dispatch.hook('sUpdateGuildQuestStatus', event => {
+    requestGuildInfo(GINFO_TYPE.quests);
   });
 
   sysmsg.on('smtGquestNormalCancel', function(params) {
     ipc.send('sysmsg', `${params['userName']} canceled **${conv(params['guildQuestName'])}**.`);
+    requestGuildInfo(GINFO_TYPE.quests);
   });
 
   sysmsg.on('smtGquestNormalFailOvertime', function(params) {
     ipc.send('sysmsg', `Failed **${conv(params['guildQuestName'])}**.`); // ?
+    requestGuildInfo(GINFO_TYPE.quests);
   });
 
   sysmsg.on('smtGquestNormalEndNotice', function(params) {
@@ -215,11 +284,11 @@ module.exports = function Discord(dispatch, config) {
   });
 
   sysmsg.on('smtLearnGuildSkillSuccess', function(params) {
-    ipc.send('sysmsg', `Your guild has learned a new skill.`);
+    ipc.send('sysmsg', `The guild has learned a new skill.`);
   });
 
   sysmsg.on('smtGuildIncentiveSuccess', function(params) {
-    ipc.send('sysmsg', `Guild funds are delivered via parcel post.`);
+    ipc.send('sysmsg', `Guild funds have been delivered via parcel post.`);
   });
 
   /****************
@@ -247,11 +316,17 @@ module.exports = function Discord(dispatch, config) {
    * guild hooks *
    ***************/
   dispatch.hook('sGuildInfo', event => {
+    lastUpdate[GINFO_TYPE.details] = Date.now();
+
+    guildId = event.id;
     motd = event.motd;
-    lastUpdate = Date.now();
+
+    ipc.send('motd', motd);
   });
 
   dispatch.hook('sGuildMemberList', event => {
+    lastUpdate[GINFO_TYPE.members] = Date.now();
+
     if (event.first) {
       allGuildies = [];
       guildMembers = [];
@@ -265,7 +340,7 @@ module.exports = function Discord(dispatch, config) {
     }
 
     if (event.last) {
-      ipc.send('guild', motd, guildMembers);
+      ipc.send('members', guildMembers);
     }
   });
 };

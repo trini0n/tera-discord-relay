@@ -49,12 +49,73 @@ module.exports = function gchatModule(app, config) {
       bot.sendMessage(channel, `[${author}]: ${message}`);
     });
 
-    ipc.on('guild', (motd, names) => {
-      names.sort((a, b) => a.localeCompare(b));
-      bot.setChannelTopic(channel,
-        'Online: ' + names.join(', ') + ' // ' +
-        'MotD: ' + U.emojify(U.unHtml(motd))
-      );
+    const guild = {
+      motd: '',
+      members: [],
+      quest: false,
+    };
+
+    const updateTopic = (() => {
+      let timer = null;
+      let lastTopic = '';
+
+      return function updateTopic() {
+        if (!timer) {
+          timer = setTimeout(() => {
+            const parts = [];
+
+            // member list
+            const online = (guild.members.length > 0) ? guild.members.join(', ') : '*Nobody*';
+            parts.push('Online: ' + online);
+
+            // guild quest
+            if (guild.quest) {
+              let progress;
+
+              if (guild.quest.targets) {
+                const targets = guild.quest.targets.map(target =>
+                  `${target.name}: ${target.completed}/${target.total}`
+                );
+                progress = targets.join(', ');
+              } else {
+                progress = `${target.completed}/${target.total}`;
+              }
+
+              parts.push(`Quest: **${guild.quest.name}** [${progress}]`);
+            }
+
+            // motd
+            if (guild.motd.length > 0) {
+              parts.push('MotD: ' + U.emojify(U.unHtml(guild.motd)));
+            }
+
+            // update
+            const topic = parts.join(' // ');
+            if (topic !== lastTopic) {
+              bot.setChannelTopic(channel, topic);
+              lastTopic = topic;
+            }
+
+            timer = null;
+          }, 500);
+        }
+      };
+    })();
+
+    ipc.on('motd', (motd) => {
+      guild.motd = motd;
+      updateTopic();
+    });
+
+    ipc.on('members', (members) => {
+      members.sort((a, b) => a.localeCompare(b));
+      guild.members = members;
+      updateTopic();
+    });
+
+    ipc.on('quest', (quest) => {
+      guild.quest = quest;
+      updateTopic();
     });
 
     ipc.on('sysmsg', (message) => {
