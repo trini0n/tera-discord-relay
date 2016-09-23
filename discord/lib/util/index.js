@@ -1,6 +1,8 @@
 'use strict';
 
-const emoji = require('./emoji.min');
+const EmojiConverter = require('./emoji');
+const emoji = new EmojiConverter();
+emoji.replace_mode = 'unified'; // use unicode replacement
 
 // helpers
 function escapeRegExp(s) {
@@ -25,8 +27,6 @@ const unHtml = (() => {
 
 function emojify(s) {
   emoji.colons_mode = false;
-  emoji.replace_mode = 'unified'; // use unicode replacement
-  emoji.inits.env = 1; // hack to ensure replace_mode isn't overwritten
   return emoji.replace_colons(s);
 }
 
