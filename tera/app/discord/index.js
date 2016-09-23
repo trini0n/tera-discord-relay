@@ -120,7 +120,7 @@ module.exports = function Discord(dispatch, config) {
       timers[type] = null;
     }
 
-    return function requestGuildInfo(type, immediate = false) {
+    return function requestGuildInfo(type, immediate) {
       if (!immediate) {
         if (!timers[type]) {
           timers[type] = setTimeout(doRequest, 100, type);
