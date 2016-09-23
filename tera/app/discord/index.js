@@ -173,24 +173,45 @@ module.exports = function Discord(dispatch, config) {
     ipc.send('sysmsg', `${params['name']} earned a ${conv(params['grade'])}.`);
   });
 
-  sysmsg.on('smtGquestNormalAccept', function(params) {
-    ipc.send('sysmsg', `Received ${params['guildQuestName']}.`);
+  /****************
+   * Guild Quests *
+   ****************/
+  dispatch.hook('sUpdateGuildQuestSystemMsg', event => {
+    const quest = conv(`@GuildQuest:${event.quest}001`);
+
+    switch (sysmsg.sysmsgs.map.code[event.sysmsg]) {
+      case 'smtGquestNormalAccept':
+        ipc.send('sysmsg', `${event.user} accepted **${quest}**.`);
+        break;
+
+      case 'smtGquestNormalComplete':
+        ipc.send('sysmsg', `Completed **${quest}**.`);
+        break;
+    }
   });
 
   sysmsg.on('smtGquestNormalCancel', function(params) {
-    ipc.send('sysmsg', `${params['userName']} canceled ${params['guildQuestName']}.`);
-  });
-
-  sysmsg.on('smtGquestNormalComplete', function(params) {
-    ipc.send('sysmsg', `Completed ${params['guildQuestName']}.`);
+    ipc.send('sysmsg', `${params['userName']} canceled **${conv(params['guildQuestName'])}**.`);
   });
 
   sysmsg.on('smtGquestNormalFailOvertime', function(params) {
-    ipc.send('sysmsg', `Failed ${params['guildQuestName']}.`);
+    ipc.send('sysmsg', `Failed **${conv(params['guildQuestName'])}**.`); // ?
   });
 
   sysmsg.on('smtGquestNormalEndNotice', function(params) {
-    ipc.send('sysmsg', `The current guild quest ends in 10min.`);
+    ipc.send('sysmsg', `The current guild quest ends in 10min.`); // ?
+  });
+
+  sysmsg.on('smtGquestNormalCarryout', function(params) {
+    if (params['targetValue'] > 25) return; // silence gather quests
+    ipc.send('sysmsg',
+      `${params['userName']} advanced **${conv(params['guildQuestName'])}**. ` +
+      `(${params['value']}/${params['targetValue']})`
+    );
+  });
+
+  sysmsg.on('smtChangeGuildlevel', function(params) {
+    ipc.send('sysmsg', `Guild level is now **${params['GuildLevel']}**.`);
   });
 
   sysmsg.on('smtLearnGuildSkillSuccess', function(params) {
