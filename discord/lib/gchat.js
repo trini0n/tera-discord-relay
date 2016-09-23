@@ -65,7 +65,7 @@ module.exports = function gchatModule(app, config) {
             const parts = [];
 
             // member list
-            const online = (guild.members.length > 0) ? guild.members.join(', ') : '*Nobody*';
+            const online = (guild.members.length > 0) ? guild.members.join(', ') : '(Nobody)';
             parts.push('Online: ' + online);
 
             // guild quest
