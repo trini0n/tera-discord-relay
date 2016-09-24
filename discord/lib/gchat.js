@@ -78,7 +78,7 @@ module.exports = function gchatModule(app, config) {
                 );
                 progress = targets.join(', ');
               } else {
-                progress = `${target.completed}/${target.total}`;
+                progress = `${guild.quest.completed}/${guild.quest.total}`;
               }
 
               parts.push(`Quest: **${guild.quest.name}** [${progress}]`);
