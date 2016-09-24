@@ -115,6 +115,9 @@ function toDiscord(message, server) {
   });
 
   // TODO convert :emoji:
+  server.emojis.forEach(emoji => {
+    message = replaceAll(message, ':' + emoji.name + ':', emoji.toString());
+  });
 
   // return
   return message;
