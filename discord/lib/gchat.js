@@ -102,7 +102,7 @@ module.exports = function gchatModule(app, config) {
 
     ipc.on('sysmsg', (message) => {
       // don't convert mentions; highlights from TERA login message are abusable
-      channel.sendMessage(U.emojify(U.unHtml(message)));
+      channel.sendMessage(U.emojify(U.unHtml(message)), { disable_everyone: true });
     });
 
     bot.on('message', (message) => {
