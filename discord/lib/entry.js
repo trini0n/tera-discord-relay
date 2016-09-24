@@ -1,38 +1,29 @@
 'use strict';
 
+const U = require('./util');
+
 module.exports = function entryModule(app, config) {
   if (!config.channels['entry']) return;
 
   const bot = app.bot;
 
   bot.on('ready', () => {
-    const server = bot.servers.get('id', config['server-id']);
+    const server = U.getServer(bot, config['server-id']);
     if (!server) {
-      console.error('server "%s" not found', config['server-id']);
-      console.error('servers:');
-      for (let s of bot.servers) {
-        console.error('- %s (%s)', s.name, s.id);
-      }
-      bot.logout();
+      console.warn('* entry module is disabled');
       return;
     }
 
-    const channel = server.channels.get('id', config.channels['entry']);
-    if (!channel || channel.type !== 'text') {
-      console.error('text channel "%s" not found', config.channels['entry']);
-      console.error('channels:');
-      for (let c of server.channels) {
-        if (c.type !== 'text') continue;
-        console.error('- #%s (%s)', c.name, c.id);
-      }
-      bot.logout();
+    const channel = U.getTextChannel(server, config.channels['entry']);
+    if (!channel) {
+      console.warn('* gchat module is disabled');
       return;
     }
 
     console.log('routing entry to #%s (%s)', channel.name, channel.id);
 
     bot.on('serverNewMember', (server, user) => {
-      bot.sendMessage(channel, `@everyone please give ${user} a warm welcome!`);
+      channel.sendMessage(`@everyone please give ${user} a warm welcome!`);
     });
   });
 };

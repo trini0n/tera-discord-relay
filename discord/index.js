@@ -12,11 +12,11 @@ const config = JSON.parse(fs.readFileSync(fn, 'utf8'));
 
 // set up bot
 const Discord = require('discord.js');
-const bot = new Discord.Client;
+const bot = new Discord.Client();
 
 bot.on('ready', () => {
   console.log('connected as %s (%s)', bot.user.username, bot.user.id);
-  bot.setStatus('online', 'TERA');
+  bot.user.setStatus('online', 'TERA');
 });
 
 bot.on('warn', (warn) => {
@@ -46,7 +46,7 @@ for (let name of ['gchat', 'entry']) {
 console.log('connecting...');
 
 if (config['token']) {
-  bot.loginWithToken(config['token']);
+  bot.login(config['token']);
 } else {
   bot.login(config['email'], config['pass']);
 }

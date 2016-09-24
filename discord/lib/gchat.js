@@ -14,26 +14,15 @@ module.exports = function gchatModule(app, config) {
   const ipc = app.ipc;
 
   bot.on('ready', () => {
-    const server = bot.servers.get('id', config['server-id']);
+    const server = U.getServer(bot, config['server-id']);
     if (!server) {
-      console.error('server "%s" not found', config['server-id']);
-      console.error('servers:');
-      for (let s of bot.servers) {
-        console.error('- %s (%s)', s.name, s.id);
-      }
-      bot.logout();
+      console.warn('* gchat module is disabled');
       return;
     }
 
-    const channel = server.channels.get('id', config.channels['gchat']);
-    if (!channel || channel.type !== 'text') {
-      console.error('text channel "%s" not found', config.channels['gchat']);
-      console.error('channels:');
-      for (let c of server.channels) {
-        if (c.type !== 'text') continue;
-        console.error('- #%s (%s)', c.name, c.id);
-      }
-      bot.logout();
+    const channel = U.getTextChannel(server, config.channels['gchat']);
+    if (!channel) {
+      console.warn('* gchat module is disabled');
       return;
     }
 
@@ -46,7 +35,7 @@ module.exports = function gchatModule(app, config) {
     ipc.on('chat', (author, message) => {
       // convert TERA HTML to Discord text
       message = U.emojify(U.toDiscord(U.unHtml(message), server));
-      bot.sendMessage(channel, `[${author}]: ${message}`);
+      channel.sendMessage(`[${author}]: ${message}`);
     });
 
     const guild = {
@@ -92,7 +81,7 @@ module.exports = function gchatModule(app, config) {
             // update
             const topic = parts.join(' // ');
             if (topic !== lastTopic) {
-              bot.setChannelTopic(channel, topic);
+              channel.setTopic(topic);
               lastTopic = topic;
             }
 
@@ -120,12 +109,12 @@ module.exports = function gchatModule(app, config) {
 
     ipc.on('sysmsg', (message) => {
       // don't convert mentions; highlights from TERA login message are abusable
-      bot.sendMessage(channel, U.emojify(U.unHtml(message)));
+      channel.sendMessage(U.emojify(U.unHtml(message)));
     });
 
     bot.on('message', (message) => {
-      if (!message.channel.equals(channel)) return;
-      if (message.author.equals(bot.user)) return;
+      if (message.channel.id !== channel.id) return;
+      if (message.author.id === bot.user.id) return;
 
       const author = U.getName(server, message.author);
       const str = U.unemojify(U.fromDiscord(message.content, server));

@@ -59,36 +59,62 @@ function replaceAll(string, search, replace) {
   return string.replace(new RegExp(escapeRegExp(search), 'gi'), replace);
 }
 
+function getServer(bot, id) {
+  const server = bot.guilds.get(id);
+  if (!server) {
+    console.error('server "%s" not found', id);
+    console.error('servers:');
+    bot.guilds.forEach((s, id) => console.error('- %s (%s)', s.name, id));
+    return null;
+  }
+  return server;
+}
+
+function getTextChannel(server, id) {
+  const channel = server.channels.get(id);
+  if (!channel || channel.type !== 'text') {
+    console.error('text channel "%s" not found', id);
+    console.error('channels:');
+    server.channels.forEach((c, id) => {
+      if (c.type !== 'text') {
+        console.error('- #%s (%s)', c.name, id);
+      }
+    });
+    return null;
+  }
+  return channel;
+}
+
 function getName(server, user) {
-  const details = server.detailsOf(user);
-  return (details && details.nick) || (user && user.username) || '(???)';
+  const details = server.members.get(user);
+  return (details && details.nickname) || (user && user.username) || '(???)';
 }
 
 function toDiscord(message, server) {
   // convert @mention
   // 1 - nicknames
-  for (let user of server.members) {
-    const d = server.detailsOf(user);
-    if (d.nick != null) {
-      message = replaceAll(message, '@' + d.nick, user.mention());
+  server.members.forEach(member => {
+    if (member.nickname != null) {
+      message = replaceAll(message, '@' + member.nickname, member.toString());
     }
-  }
+  });
 
   // 2 - usernames
-  for (let user of server.members) {
-    message = replaceAll(message, '@' + user.username, user.mention());
-  }
+  server.members.forEach(member => {
+    message = replaceAll(message, '@' + member.user.username, member.toString());
+  });
 
   // convert #channel
-  for (let ch of server.channels) {
-    if (ch.type !== 'text') continue;
-    message = replaceAll(message, '#' + ch.name, ch.mention());
-  }
+  server.channels.forEach(channel => {
+    if (channel.type === 'text') {
+      message = replaceAll(message, '#' + channel.name, channel.toString());
+    }
+  });
 
   // convert @role
-  for (let role of server.roles) {
-    message = replaceAll(message, '@' + role.name, role.mention());
-  }
+  server.roles.forEach(role => {
+    message = replaceAll(message, '@' + role.name, role.toString());
+  });
 
   // TODO convert :emoji:
 
@@ -100,17 +126,17 @@ function fromDiscord(message, server) {
   return (message
     // @user, @!user
     .replace(/<@!?(\d+)>/g, (_, mention) => {
-      const m = server.members.get('id', mention);
-      return '@' + getName(server, m);
+      const m = server.members.get(mention);
+      return '@' + getName(server, m.user);
     })
     // #channel
     .replace(/<#(\d+)>/g, (_, mention) => {
-      const m = server.channels.get('id', mention);
+      const m = server.channels.get(mention);
       return '#' + ((m && m.name) || '(???)');
     })
     // @role
     .replace(/<@&(\d+)>/g, (_, mention) => {
-      const m = server.roles.get('id', mention);
+      const m = server.roles.get(mention);
       return '@' + ((m && m.name) || '(???)');
     })
     // :emoji:
@@ -125,6 +151,8 @@ module.exports = {
   emojify: emojify,
   unemojify: unemojify,
   replaceAll: replaceAll,
+  getServer: getServer,
+  getTextChannel: getTextChannel,
   getName: getName,
   toDiscord: toDiscord,
   fromDiscord: fromDiscord,
