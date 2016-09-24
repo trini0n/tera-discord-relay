@@ -1,17 +1,10 @@
-'use strict';
-
 const U = require('./util');
 
 // main
 module.exports = function gchatModule(app, config) {
-  if (!config.channels.gchat) {
-    // TODO
-    return;
-  }
+  if (!config.channels.gchat) return;
 
-  //const {bot, ipc} = app;
-  const bot = app.bot;
-  const ipc = app.ipc;
+  const {bot, ipc} = app;
 
   bot.on('ready', () => {
     const server = U.getServer(bot, config['server-id']);

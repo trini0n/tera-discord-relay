@@ -1,5 +1,3 @@
-'use strict';
-
 const EmojiConverter = require('./emoji');
 const emoji = new EmojiConverter();
 emoji.replace_mode = 'unified'; // use unicode replacement
@@ -146,14 +144,14 @@ function fromDiscord(message, server) {
 
 // exports
 module.exports = {
-  escapeRegExp: escapeRegExp,
-  unHtml: unHtml,
-  emojify: emojify,
-  unemojify: unemojify,
-  replaceAll: replaceAll,
-  getServer: getServer,
-  getTextChannel: getTextChannel,
-  getName: getName,
-  toDiscord: toDiscord,
-  fromDiscord: fromDiscord,
+  escapeRegExp,
+  unHtml,
+  emojify,
+  unemojify,
+  replaceAll,
+  getServer,
+  getTextChannel,
+  getName,
+  toDiscord,
+  fromDiscord,
 };

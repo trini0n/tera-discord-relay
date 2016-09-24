@@ -4,7 +4,7 @@
   "author": "meishu",
   "description": "Headless client for TERA",
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=6.0.0"
   },
   "dependencies": {
     "request": "^2.74.0",

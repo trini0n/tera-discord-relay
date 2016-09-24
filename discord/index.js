@@ -1,5 +1,3 @@
-'use strict';
-
 // config
 const fs = require('fs');
 const fn = process.argv[2];
@@ -29,11 +27,11 @@ bot.on('disconnected', () => {
 });
 
 // set up ipc
-const ipc = require('./lib/ipc');
-ipc.init(config['socket-name']);
+const IpcModule = require('./lib/ipc');
+const ipc = new IpcModule(config['socket-name']);
 
 // set up app
-const app = { bot: bot, ipc: ipc };
+const app = { bot, ipc };
 
 console.log('loading submodules...');
 for (let name of ['gchat', 'entry']) {

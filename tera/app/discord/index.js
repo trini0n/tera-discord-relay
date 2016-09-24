@@ -1,5 +1,3 @@
-'use strict';
-
 const Sysmsg = require('sysmsg');
 const TeraStrings = require('tera-strings');
 const IPC = require('./ipc');
@@ -59,44 +57,41 @@ module.exports = function Discord(dispatch, config) {
   }
 
   const sysmsg = new Sysmsg(dispatch);
-  const ipc = new IPC.client(path, function() { // (event, ...args) in node v6
-    const args = [...arguments];
-    const event = args.shift();
-
-    let author, message, target;
-
+  const ipc = new IPC.client(path, (event, ...args) => {
     switch (event) {
-      case 'fetch':
+      case 'fetch': {
         for (let typename in GINFO_TYPE) {
           requestGuildInfo(GINFO_TYPE[typename]);
         }
         break;
+      }
 
-      case 'chat':
-        author = args[0];
-        message = args[1];
+      case 'chat': {
+        const [author, message] = args;
         dispatch.toServer('cChat', {
           channel: 2,
           message: '<FONT>' + escape(`<${author}> ${message}`) + '</FONT>',
         });
         break;
+      }
 
-      case 'whisper':
-        target = args[0];
-        message = args[1];
+      case 'whisper': {
+        const [target, message] = args;
         dispatch.toServer('cWhisper', {
           target: target,
           message: '<FONT>' + message + '</FONT>',
         });
         break;
+      }
 
-      case 'info':
-        message = args[0];
-        return dispatch.toServer('cChat', {
+      case 'info': {
+        const [message] = args;
+        dispatch.toServer('cChat', {
           channel: 2,
           message: `<FONT>* ${escape(message)}</FONT>`,
         });
         break;
+      }
     }
   });
 
@@ -164,46 +159,46 @@ module.exports = function Discord(dispatch, config) {
   /*****************
    * Guild Notices *
    *****************/
-  sysmsg.on('smtGcMsgboxApplylist1', function(params) {
+  sysmsg.on('smtGcMsgboxApplylist1', (params) => {
     ipc.send('sysmsg', `${params['Name']} joined the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGcMsgboxApplyresult1', function(params) {
+  sysmsg.on('smtGcMsgboxApplyresult1', (params) => {
     ipc.send('sysmsg', `${params['Name1']} accepted ${params['Name2']} into the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildLogLeave', function(params) {
+  sysmsg.on('smtGuildLogLeave', (params) => {
     ipc.send('sysmsg', `${params['UserName']} has left the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildLogBan', function(params) {
+  sysmsg.on('smtGuildLogBan', (params) => {
     ipc.send('sysmsg', `${params['UserName']} was kicked out of the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildMemberLogon', function(params) {
+  sysmsg.on('smtGuildMemberLogon', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged in. Message: ${params['Comment']}`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildMemberLogonNoMessage', function(params) {
+  sysmsg.on('smtGuildMemberLogonNoMessage', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged in.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildMemberLogout', function(params) {
+  sysmsg.on('smtGuildMemberLogout', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged out.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGcSysmsgGuildChiefChanged', function(params) {
+  sysmsg.on('smtGcSysmsgGuildChiefChanged', (params) => {
     ipc.send('sysmsg', `${params['Name']} is now the Guild Master.`);
   });
 
-  sysmsg.on('smtAccomplishAchievementGradeGuild', function(params) {
+  sysmsg.on('smtAccomplishAchievementGradeGuild', (params) => {
     ipc.send('sysmsg', `${params['name']} earned a ${conv(params['grade'])}.`);
   });
 
@@ -257,21 +252,21 @@ module.exports = function Discord(dispatch, config) {
     requestGuildInfo(GINFO_TYPE.quests);
   });
 
-  sysmsg.on('smtGquestNormalCancel', function(params) {
+  sysmsg.on('smtGquestNormalCancel', (params) => {
     ipc.send('sysmsg', `${params['userName']} canceled **${conv(params['guildQuestName'])}**.`);
     requestGuildInfo(GINFO_TYPE.quests);
   });
 
-  sysmsg.on('smtGquestNormalFailOvertime', function(params) {
+  sysmsg.on('smtGquestNormalFailOvertime', (params) => {
     ipc.send('sysmsg', `Failed **${conv(params['guildQuestName'])}**.`); // ?
     requestGuildInfo(GINFO_TYPE.quests);
   });
 
-  sysmsg.on('smtGquestNormalEndNotice', function(params) {
+  sysmsg.on('smtGquestNormalEndNotice', (params) => {
     ipc.send('sysmsg', `The current guild quest ends in 10min.`); // ?
   });
 
-  sysmsg.on('smtGquestNormalCarryout', function(params) {
+  sysmsg.on('smtGquestNormalCarryout', (params) => {
     if (params['targetValue'] > 25) return; // silence gather quests
     ipc.send('sysmsg',
       `${params['userName']} advanced **${conv(params['guildQuestName'])}**. ` +
@@ -279,22 +274,22 @@ module.exports = function Discord(dispatch, config) {
     );
   });
 
-  sysmsg.on('smtChangeGuildlevel', function(params) {
+  sysmsg.on('smtChangeGuildlevel', (params) => {
     ipc.send('sysmsg', `Guild level is now **${params['GuildLevel']}**.`);
   });
 
-  sysmsg.on('smtLearnGuildSkillSuccess', function(params) {
+  sysmsg.on('smtLearnGuildSkillSuccess', (params) => {
     ipc.send('sysmsg', `The guild has learned a new skill.`);
   });
 
-  sysmsg.on('smtGuildIncentiveSuccess', function(params) {
+  sysmsg.on('smtGuildIncentiveSuccess', (params) => {
     ipc.send('sysmsg', `Guild funds have been delivered via parcel post.`);
   });
 
   /****************
    * Misc Notices *
    ****************/
-  sysmsg.on('smtMaxEnchantSucceed', function(params) {
+  sysmsg.on('smtMaxEnchantSucceed', (params) => {
     if (allGuildies.indexOf(params['UserName']) !== -1) {
       ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} has successfully enchanted ` +
@@ -303,7 +298,7 @@ module.exports = function Discord(dispatch, config) {
     }
   });
 
-  sysmsg.on('smtGachaReward', function(params) {
+  sysmsg.on('smtGachaReward', (params) => {
     if (allGuildies.indexOf(params['UserName']) !== -1) {
       ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} obtained <${conv(params['randomItemName'])}> x ` +

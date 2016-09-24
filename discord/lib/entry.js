@@ -1,11 +1,9 @@
-'use strict';
-
 const U = require('./util');
 
 module.exports = function entryModule(app, config) {
   if (!config.channels['entry']) return;
 
-  const bot = app.bot;
+  const {bot} = app;
 
   bot.on('ready', () => {
     const server = U.getServer(bot, config['server-id']);
