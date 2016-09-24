@@ -81,7 +81,7 @@ module.exports = function gchatModule(app, config) {
                 progress = `${guild.quest.completed}/${guild.quest.total}`;
               }
 
-              parts.push(`Quest: **${guild.quest.name}** [${progress}]`);
+              parts.push(`Quest: ${guild.quest.name} [${progress}]`);
             }
 
             // motd
