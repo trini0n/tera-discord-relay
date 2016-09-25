@@ -84,7 +84,7 @@ function getTextChannel(server, id) {
 }
 
 function getName(server, user) {
-  const details = server.members.get(user);
+  const details = server.members.get(user && user.id);
   return (details && details.nickname) || (user && user.username) || '(???)';
 }
 
