@@ -10,7 +10,7 @@ const config = JSON.parse(fs.readFileSync(fn, 'utf8'));
 
 // set up bot
 const Discord = require('discord.js');
-const bot = new Discord.Client();
+const bot = new Discord.Client({ fetch_all_members: true });
 
 bot.on('ready', () => {
   console.log('connected as %s (%s)', bot.user.username, bot.user.id);
