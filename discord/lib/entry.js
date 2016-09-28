@@ -5,7 +5,7 @@ module.exports = function entryModule(app, config) {
 
   const {bot} = app;
 
-  bot.on('ready', () => {
+  bot.once('ready', () => {
     const server = U.getServer(bot, config['server-id']);
     if (!server) {
       console.warn('* entry module is disabled');

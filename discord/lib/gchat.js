@@ -6,7 +6,7 @@ module.exports = function gchatModule(app, config) {
 
   const {bot, ipc} = app;
 
-  bot.on('ready', () => {
+  bot.once('ready', () => {
     const server = U.getServer(bot, config['server-id']);
     if (!server) {
       console.warn('* gchat module is disabled');
