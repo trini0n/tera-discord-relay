@@ -14,14 +14,16 @@ module.exports = function entryModule(app, config) {
 
     const channel = U.getTextChannel(server, config.channels['entry']);
     if (!channel) {
-      console.warn('* gchat module is disabled');
+      console.warn('* entry module is disabled');
       return;
     }
 
     console.log('routing entry to #%s (%s)', channel.name, channel.id);
 
-    bot.on('serverNewMember', (server, user) => {
-      channel.sendMessage(`@everyone please give ${user} a warm welcome!`);
+    bot.on('guildMemberAdd', (guild, user) => {
+      if (guild.id === server.id) {
+        channel.sendMessage(`@everyone please give ${user} a warm welcome!`);
+      }
     });
   });
 };
