@@ -209,7 +209,7 @@ module.exports = function Discord(dispatch, config) {
     lastUpdate[GINFO_TYPE.quests] = Date.now();
 
     const quest = event.quests[0];
-    if (!quest.accepted) {
+    if (quest.status === 0) {
       ipc.send('quest', false);
       return;
     }
