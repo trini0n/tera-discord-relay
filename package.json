@@ -1,0 +1,17 @@
+{
+  "name": "tera-discord-relay",
+  "version": "0.1.0",
+  "description": "",
+  "license": "ISC",
+  "author": "meishu",
+  "dependencies": {
+    "discord.js": "^9.3.0",
+    "request": "^2.76.0",
+    "tera-auth-ticket": "github:meishuu/tera-auth-ticket",
+    "tera-data": "github:meishuu/tera-data",
+    "tera-proxy-game": "github:meishuu/tera-proxy-game"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  }
+}
