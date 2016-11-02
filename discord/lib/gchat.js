@@ -34,7 +34,7 @@ module.exports = function gchatModule(app, config) {
     const guild = {
       motd: '',
       members: [],
-      quest: false,
+      quest: [],
     };
 
     const updateTopic = (() => {
@@ -51,19 +51,23 @@ module.exports = function gchatModule(app, config) {
             parts.push('Online: ' + online);
 
             // guild quest
-            if (guild.quest) {
-              let progress;
+            if (guild.quest.length > 0) {
+              const quests = guild.quest.map((quest) => {
+                let progress;
 
-              if (guild.quest.targets) {
-                const targets = guild.quest.targets.map(target =>
-                  `${target.name}: ${target.completed}/${target.total}`
-                );
-                progress = targets.join(', ');
-              } else {
-                progress = `${guild.quest.completed}/${guild.quest.total}`;
-              }
+                if (quest.targets) {
+                  const targets = quest.targets.map(target =>
+                    `${target.name}: ${target.completed}/${target.total}`
+                  );
+                  progress = targets.join(', ');
+                } else {
+                  progress = `${quest.completed}/${quest.total}`;
+                }
 
-              parts.push(`Quest: ${guild.quest.name} [${progress}]`);
+                return `${quest.name} [${progress}]`;
+              });
+
+              parts.push('Quests: ' + quests.join(', '));
             }
 
             // motd

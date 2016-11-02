@@ -208,25 +208,23 @@ module.exports = function Discord(dispatch, config) {
   dispatch.hook('sGuildQuestList', event => {
     lastUpdate[GINFO_TYPE.quests] = Date.now();
 
-    const quest = event.quests[0];
-    if (quest.status === 0) {
-      ipc.send('quest', false);
-      return;
-    }
+    const quests = event.quests.filter(quest => quest.status !== 0);
 
-    const name = conv(quest.name);
+    ipc.send('quest', quests.map((quest) => {
+      const name = conv(quest.name);
 
-    if (quest.targets.length === 1 && name != 'Crafting Supplies') {
-      const target = quest.targets[0];
-      ipc.send('quest', { name, completed: target.completed, total: target.total });
-    } else {
-      const targets = quest.targets.map(target => ({
-        name: conv(`@item:${target.info2}`),
-        completed: target.completed,
-        total: target.total,
-      }));
-      ipc.send('quest', { name, targets });
-    }
+      if (quest.targets.length === 1 && name != 'Crafting Supplies') {
+        const [target] = quest.targets;
+        return { name, completed: target.completed, total: target.total };
+      } else {
+        const targets = quest.targets.map(target => ({
+          name: conv(`@item:${target.info2}`),
+          completed: target.completed,
+          total: target.total,
+        }));
+        return { name, targets };
+      }
+    }));
   });
 
   dispatch.hook('sUpdateGuildQuestSystemMsg', event => {
