@@ -128,7 +128,7 @@ web.getLogin(function(err, data) {
 
     // terminate when connection ends
     client.on('close', function onClose() {
-      process.exit();
+      client.close();
     });
   });
 
@@ -147,6 +147,7 @@ web.getLogin(function(err, data) {
 
   srvConn.on('timeout', function onTimeout() {
     console.log('<timeout>');
+    client.close();
   });
 
   srvConn.on('close', function onClose() {
