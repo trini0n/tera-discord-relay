@@ -30,6 +30,7 @@ function escape(str) {
   const words = [
     '.com',
     'fag',
+    'mmoc',
     'molest',
     'nigg',
   ];
