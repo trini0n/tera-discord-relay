@@ -20,8 +20,8 @@ module.exports = function entryModule(app, config) {
 
     console.log('routing entry to #%s (%s)', channel.name, channel.id);
 
-    bot.on('guildMemberAdd', (guild, user) => {
-      if (guild.id === server.id) {
+    bot.on('guildMemberAdd', (user) => {
+      if (user.guild.id === server.id) {
         channel.sendMessage(`@everyone please give ${user} a warm welcome!`);
       }
     });

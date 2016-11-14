@@ -10,11 +10,14 @@ const config = JSON.parse(fs.readFileSync(fn, 'utf8'));
 
 // set up bot
 const Discord = require('discord.js');
-const bot = new Discord.Client({ fetch_all_members: true });
+const bot = new Discord.Client({
+  fetchAllMembers: true,
+  sync: true,
+});
 
 bot.on('ready', () => {
   console.log('connected as %s (%s)', bot.user.username, bot.user.id);
-  bot.user.setStatus('online', 'TERA');
+  bot.user.setGame('TERA');
 });
 
 bot.on('warn', (warn) => {
