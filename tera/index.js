@@ -59,6 +59,14 @@ web.getLogin(function(err, data) {
   var client = new gameClient.FakeClient(connection);
   var srvConn = connection.connect(client, { host: config.host, port: config.port });
 
+  function closeClient() {
+    var cl = client;
+    if (cl) {
+      client = null;
+      cl.close();
+    }
+  }
+
   // set up core bot features
   connection.dispatch.load('<core>', function coreModule(dispatch) {
     // `connect` handler
@@ -128,7 +136,7 @@ web.getLogin(function(err, data) {
 
     // terminate when connection ends
     client.on('close', function onClose() {
-      client.close();
+      closeClient();
     });
   });
 
@@ -147,11 +155,12 @@ web.getLogin(function(err, data) {
 
   srvConn.on('timeout', function onTimeout() {
     console.log('<timeout>');
-    client.close();
+    closeClient();
   });
 
   srvConn.on('close', function onClose() {
     console.log('<disconnected>');
+    process.exit();
   });
 
   srvConn.on('error', function onError(err) {
