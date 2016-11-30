@@ -128,7 +128,7 @@ function fromDiscord(message, server) {
     // @user, @!user
     .replace(/<@!?(\d+)>/g, (_, mention) => {
       const m = server.members.get(mention);
-      return '@' + getName(server, m.user);
+      return '@' + ((m && getName(server, m.user)) || '(???)');
     })
     // #channel
     .replace(/<#(\d+)>/g, (_, mention) => {
