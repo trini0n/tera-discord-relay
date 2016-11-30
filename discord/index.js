@@ -24,7 +24,7 @@ bot.on('warn', (warn) => {
   console.warn(warn);
 });
 
-bot.on('disconnected', () => {
+bot.on('disconnect', () => {
   console.log('disconnected');
   process.exit();
 });
