@@ -1,4 +1,5 @@
 const U = require('./util');
+const Shorteners = require('./util/shortener');
 
 // main
 module.exports = function gchatModule(app, config) {
@@ -21,6 +22,13 @@ module.exports = function gchatModule(app, config) {
 
     console.log('routing gchat to #%s (%s)', channel.name, channel.id);
     ipc.send('fetch');
+
+    /*************
+     * shortener *
+     *************/
+    const shortener = config.shortener
+      ? new Shorteners.LocalShortener(config.shortener)
+      : new Shorteners.NoShortener();
 
     /*********
      * hooks *
@@ -114,8 +122,22 @@ module.exports = function gchatModule(app, config) {
       if (message.author.id === bot.user.id) return;
 
       const author = U.getName(server, message.author);
-      const str = U.unemojify(U.fromDiscord(message.content, server));
-      ipc.send('chat', author, str);
+
+      if (message.type === 'PINS_ADD') {
+        ipc.send('info', `${author} pinned a message.`);
+      } else {
+        const str = U.unemojify(U.fromDiscord(message.content, server));
+        const uploads = message.attachments.map(attachment => shortener.shorten(attachment.url));
+        if (uploads.length) {
+          if (str) {
+            ipc.send('chat', author, `${str} [uploaded: ${uploads.join(', ')}]`);
+          } else {
+            ipc.send('info', `${author} uploaded: ${uploads.join(', ')}`);
+          }
+        } else {
+          ipc.send('chat', author, str);
+        }
+      }
     });
   });
 };
