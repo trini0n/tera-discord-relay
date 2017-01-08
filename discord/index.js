@@ -45,9 +45,4 @@ for (let name of ['gchat', 'entry']) {
 
 // connect
 console.log('connecting...');
-
-if (config['token']) {
-  bot.login(config['token']);
-} else {
-  bot.login(config['email'], config['pass']);
-}
+bot.login(config['token']);
