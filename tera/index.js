@@ -74,8 +74,8 @@ web.getLogin(function(err, data) {
       // version check
       dispatch.toServer('cCheckVersion', {
         version: [
-          { index: 0, value: 0x0004ADAB },
-          { index: 1, value: 0x0004ADEB },
+          { index: 0, value: 306637 },
+          { index: 1, value: 307847 },
         ]
       });
 
@@ -84,7 +84,7 @@ web.getLogin(function(err, data) {
         unk1: 0,
         unk2: 0,
         unk3: 2,
-        unk4: 5002, // patch version
+        unk4: 9901, // patch version
         name: data.name,
         ticket: new Buffer(data.ticket),
       });
