@@ -65,6 +65,10 @@ web.getLogin(function(err, data) {
       client = null;
       cl.close();
     }
+
+    setImmediate(function() {
+      process.exit();
+    });
   }
 
   // set up core bot features

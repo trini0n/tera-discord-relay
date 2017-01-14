@@ -45,4 +45,7 @@ for (let name of ['gchat', 'entry']) {
 
 // connect
 console.log('connecting...');
-bot.login(config['token']);
+bot.login(config['token']).catch((reason) => {
+  console.error('failed to login:', reason);
+  process.exit();
+});
