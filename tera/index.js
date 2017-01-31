@@ -78,8 +78,8 @@ web.getLogin(function(err, data) {
       // version check
       dispatch.toServer('cCheckVersion', {
         version: [
-          { index: 0, value: 306637 },
-          { index: 1, value: 307847 },
+          { index: 0, value: 311378 },
+          { index: 1, value: 308355 },
         ]
       });
 
