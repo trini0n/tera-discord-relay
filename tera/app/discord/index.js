@@ -57,6 +57,16 @@ module.exports = function Discord(dispatch, config) {
     path = '/tmp/' + path + '.sock';
   }
 
+  let loaded = false;
+  let messageQueue = [];
+  function sendOrQueue(...args) {
+    if (!loaded) {
+      messageQueue.push(args);
+    } else {
+      dispatch.toServer(...args);
+    }
+  }
+
   const sysmsg = new Sysmsg(dispatch);
   const ipc = new IPC.client(path, (event, ...args) => {
     switch (event) {
@@ -69,7 +79,7 @@ module.exports = function Discord(dispatch, config) {
 
       case 'chat': {
         const [author, message] = args;
-        dispatch.toServer('cChat', {
+        sendOrQueue('cChat', {
           channel: 2,
           message: '<FONT>' + escape(`<${author}> ${message}`) + '</FONT>',
         });
@@ -78,7 +88,7 @@ module.exports = function Discord(dispatch, config) {
 
       case 'whisper': {
         const [target, message] = args;
-        dispatch.toServer('cWhisper', {
+        sendOrQueue('cWhisper', {
           target: target,
           message: '<FONT>' + message + '</FONT>',
         });
@@ -87,7 +97,7 @@ module.exports = function Discord(dispatch, config) {
 
       case 'info': {
         const [message] = args;
-        dispatch.toServer('cChat', {
+        sendOrQueue('cChat', {
           channel: 2,
           message: `<FONT>* ${escape(message)}</FONT>`,
         });
@@ -132,6 +142,7 @@ module.exports = function Discord(dispatch, config) {
   const lastUpdate = {};
 
   setInterval(() => {
+    if (!guildId) return;
     for (let typename in GINFO_TYPE) {
       const type = GINFO_TYPE[typename];
       if (lastUpdate[type] && Date.now() - lastUpdate[type] > REFRESH_THRESHOLD) {
@@ -154,6 +165,13 @@ module.exports = function Discord(dispatch, config) {
   dispatch.hook('sWhisper', event => {
     if (event.recipient === myName) {
       ipc.send('whisper', event.author, event.message);
+    }
+  });
+
+  dispatch.hook('sLoadTopo', event => {
+    loaded = true;
+    while (messageQueue.length > 0) {
+      dispatch.toServer(...messageQueue.shift());
     }
   });
 
@@ -228,27 +246,16 @@ module.exports = function Discord(dispatch, config) {
     }));
   });
 
-  dispatch.hook('sUpdateGuildQuestSystemMsg', event => {
-    const quest = conv(`@GuildQuest:${event.quest}001`);
-
-    switch (sysmsg.sysmsgs.map.code[event.sysmsg]) {
-      case 'smtGquestNormalAccept':
-        ipc.send('sysmsg', `${event.user} accepted **${quest}**.`);
-        break;
-
-      case 'smtGquestNormalComplete':
-        ipc.send('sysmsg', `Completed **${quest}**.`);
-        break;
-
-      // smtGquestOccupyAccept
-      // smtGquestOccupyComplete
-    }
-
+  dispatch.hook('sUpdateGuildQuestStatus', event => {
     requestGuildInfo(GINFO_TYPE.quests);
   });
 
-  dispatch.hook('sUpdateGuildQuestStatus', event => {
-    requestGuildInfo(GINFO_TYPE.quests);
+  sysmsg.on('smtGquestNormalAccept', (params) => {
+    ipc.send('sysmsg', `Received **${conv(params['guildQuestName'])}**.`);
+  });
+
+  sysmsg.on('smtGquestNormalComplete', (params) => {
+    ipc.send('sysmsg', `Completed **${conv(params['guildQuestName'])}**.`);
   });
 
   sysmsg.on('smtGquestNormalCancel', (params) => {
