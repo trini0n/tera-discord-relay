@@ -1,6 +1,4 @@
-const EmojiConverter = require('./emoji');
-const emoji = new EmojiConverter();
-emoji.replace_mode = 'unified'; // use unicode replacement
+const emoji = require('./emoji');
 
 // helpers
 function escapeRegExp(s) {
@@ -24,8 +22,7 @@ const unHtml = (() => {
 })();
 
 function emojify(s) {
-  emoji.colons_mode = false;
-  return emoji.replace_colons(s);
+  return emoji.replaceColons(s);
 }
 
 const unemojify = (() => {
@@ -45,11 +42,10 @@ const unemojify = (() => {
     wink: ';)',
   };
 
-  const regex = new RegExp(':(' + (Object.keys(shortcuts).join('|')) + '):', 'g');
+  const regex = new RegExp(`:(${Object.keys(shortcuts).join('|')}):`, 'g');
 
   return function unemojify(s) {
-    emoji.colons_mode = true;
-    return emoji.replace_unified(s).replace(regex, (_, $1) => shortcuts[$1]);
+    return emoji.replaceUnicode(s).replace(regex, (_, $1) => shortcuts[$1]);
   };
 })();
 
