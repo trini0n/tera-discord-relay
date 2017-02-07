@@ -88,7 +88,7 @@ web.getLogin(function(err, data) {
         unk1: 0,
         unk2: 0,
         unk3: 2,
-        unk4: 9901, // patch version
+        unk4: 5203, // patch version
         name: data.name,
         ticket: new Buffer(data.ticket),
       });
