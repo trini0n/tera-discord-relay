@@ -75,14 +75,6 @@ web.getLogin(function(err, data) {
   connection.dispatch.load('<core>', function coreModule(dispatch) {
     // `connect` handler
     client.on('connect', function onConnect() {
-      // version check
-      dispatch.toServer('cCheckVersion', {
-        version: [
-          { index: 0, value: 311380 },
-          { index: 1, value: 311760 },
-        ]
-      });
-
       // authorization
       dispatch.toServer('cLoginArbiter', {
         unk1: 0,
