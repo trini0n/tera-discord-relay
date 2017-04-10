@@ -79,7 +79,7 @@ module.exports = function Discord(dispatch, config) {
 
       case 'chat': {
         const [author, message] = args;
-        sendOrQueue('cChat', {
+        sendOrQueue('cChat', 1, {
           channel: 2,
           message: '<FONT>' + escape(`<${author}> ${message}`) + '</FONT>',
         });
@@ -88,16 +88,16 @@ module.exports = function Discord(dispatch, config) {
 
       case 'whisper': {
         const [target, message] = args;
-        sendOrQueue('cWhisper', {
+        sendOrQueue('cWhisper', 1, {
           target: target,
-          message: '<FONT>' + message + '</FONT>',
+          message: `<FONT>${message}</FONT>`,
         });
         break;
       }
 
       case 'info': {
         const [message] = args;
-        sendOrQueue('cChat', {
+        sendOrQueue('cChat', 1, {
           channel: 2,
           message: `<FONT>* ${escape(message)}</FONT>`,
         });
@@ -122,7 +122,7 @@ module.exports = function Discord(dispatch, config) {
     const timers = {};
 
     function doRequest(type) {
-      dispatch.toServer('cRequestGuildInfo', { guildId, type });
+      dispatch.toServer('cRequestGuildInfo', 1, { guildId, type });
       timers[type] = null;
     }
 
@@ -152,23 +152,23 @@ module.exports = function Discord(dispatch, config) {
     }
   }, REFRESH_TIMER);
 
-  dispatch.hook('sLogin', event => {
+  dispatch.hook('sLogin', 2, (event) => {
     myName = event.name;
   });
 
-  dispatch.hook('sChat', event => {
+  dispatch.hook('sChat', 1, (event) => {
     if (event.channel === 2 && event.authorName !== myName) {
       ipc.send('chat', event.authorName, event.message);
     }
   });
 
-  dispatch.hook('sWhisper', event => {
+  dispatch.hook('sWhisper', 1, (event) => {
     if (event.recipient === myName) {
       ipc.send('whisper', event.author, event.message);
     }
   });
 
-  dispatch.hook('sLoadTopo', event => {
+  dispatch.hook('sLoadTopo', 1, (event) => {
     loaded = true;
     while (messageQueue.length > 0) {
       dispatch.toServer(...messageQueue.shift());
@@ -178,53 +178,53 @@ module.exports = function Discord(dispatch, config) {
   /*****************
    * Guild Notices *
    *****************/
-  sysmsg.on('smtGcMsgboxApplylist1', (params) => {
+  sysmsg.on('SMT_GC_MSGBOX_APPLYLIST_1', (params) => {
     ipc.send('sysmsg', `${params['Name']} joined the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGcMsgboxApplyresult1', (params) => {
+  sysmsg.on('SMT_GC_MSGBOX_APPLYRESULT_1', (params) => {
     ipc.send('sysmsg', `${params['Name1']} accepted ${params['Name2']} into the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildLogLeave', (params) => {
+  sysmsg.on('SMT_GUILD_LOG_LEAVE', (params) => {
     ipc.send('sysmsg', `${params['UserName']} has left the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildLogBan', (params) => {
+  sysmsg.on('SMT_GUILD_LOG_BAN', (params) => {
     ipc.send('sysmsg', `${params['UserName']} was kicked out of the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildMemberLogon', (params) => {
+  sysmsg.on('SMT_GUILD_MEMBER_LOGON', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged in. Message: ${params['Comment']}`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildMemberLogonNoMessage', (params) => {
+  sysmsg.on('SMT_GUILD_MEMBER_LOGON_NO_MESSAGE', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged in.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGuildMemberLogout', (params) => {
+  sysmsg.on('SMT_GUILD_MEMBER_LOGOUT', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged out.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
 
-  sysmsg.on('smtGcSysmsgGuildChiefChanged', (params) => {
+  sysmsg.on('SMT_GC_SYSMSG_GUILD_CHIEF_CHANGED', (params) => {
     ipc.send('sysmsg', `${params['Name']} is now the Guild Master.`);
   });
 
-  sysmsg.on('smtAccomplishAchievementGradeGuild', (params) => {
+  sysmsg.on('SMT_ACCOMPLISH_ACHIEVEMENT_GRADE_GUILD', (params) => {
     ipc.send('sysmsg', `${params['name']} earned a ${conv(params['grade'])}.`);
   });
 
   /****************
    * Guild Quests *
    ****************/
-  dispatch.hook('sGuildQuestList', event => {
+  dispatch.hook('sGuildQuestList', 1, (event) => {
     lastUpdate[GINFO_TYPE.quests] = Date.now();
 
     const quests = event.quests.filter(quest => quest.status !== 0);
@@ -246,33 +246,33 @@ module.exports = function Discord(dispatch, config) {
     }));
   });
 
-  dispatch.hook('sUpdateGuildQuestStatus', event => {
+  dispatch.hook('sUpdateGuildQuestStatus', 1, (event) => {
     requestGuildInfo(GINFO_TYPE.quests);
   });
 
-  sysmsg.on('smtGquestNormalAccept', (params) => {
+  sysmsg.on('SMT_GQUEST_NORMAL_ACCEPT', (params) => {
     ipc.send('sysmsg', `Received **${conv(params['guildQuestName'])}**.`);
   });
 
-  sysmsg.on('smtGquestNormalComplete', (params) => {
+  sysmsg.on('SMT_GQUEST_NORMAL_COMPLETE', (params) => {
     ipc.send('sysmsg', `Completed **${conv(params['guildQuestName'])}**.`);
   });
 
-  sysmsg.on('smtGquestNormalCancel', (params) => {
+  sysmsg.on('SMT_GQUEST_NORMAL_CANCEL', (params) => {
     ipc.send('sysmsg', `${params['userName']} canceled **${conv(params['guildQuestName'])}**.`);
     requestGuildInfo(GINFO_TYPE.quests);
   });
 
-  sysmsg.on('smtGquestNormalFailOvertime', (params) => {
+  sysmsg.on('SMT_GQUEST_NORMAL_FAIL_OVERTIME', (params) => {
     ipc.send('sysmsg', `Failed **${conv(params['guildQuestName'])}**.`); // ?
     requestGuildInfo(GINFO_TYPE.quests);
   });
 
-  sysmsg.on('smtGquestNormalEndNotice', (params) => {
+  sysmsg.on('SMT_GQUEST_NORMAL_END_NOTICE', (params) => {
     ipc.send('sysmsg', `The current guild quest ends in 10min.`); // ?
   });
 
-  sysmsg.on('smtGquestNormalCarryout', (params) => {
+  sysmsg.on('SMT_GQUEST_NORMAL_CARRYOUT', (params) => {
     if (params['targetValue'] > 25) return; // silence gather quests
     ipc.send('sysmsg',
       `${params['userName']} advanced **${conv(params['guildQuestName'])}**. ` +
@@ -280,22 +280,22 @@ module.exports = function Discord(dispatch, config) {
     );
   });
 
-  sysmsg.on('smtChangeGuildlevel', (params) => {
+  sysmsg.on('SMT_CHANGE_GUILDLEVEL', (params) => {
     ipc.send('sysmsg', `Guild level is now **${params['GuildLevel']}**.`);
   });
 
-  sysmsg.on('smtLearnGuildSkillSuccess', (params) => {
+  sysmsg.on('SMT_LEARN_GUILD_SKILL_SUCCESS', (params) => {
     ipc.send('sysmsg', `The guild has learned a new skill.`);
   });
 
-  sysmsg.on('smtGuildIncentiveSuccess', (params) => {
+  sysmsg.on('SMT_GUILD_INCENTIVE_SUCCESS', (params) => {
     ipc.send('sysmsg', `Guild funds have been delivered via parcel post.`);
   });
 
   /****************
    * Misc Notices *
    ****************/
-  sysmsg.on('smtMaxEnchantSucceed', (params) => {
+  sysmsg.on('SMT_MAX_ENCHANT_SUCCEED', (params) => {
     if (allGuildies.indexOf(params['UserName']) !== -1) {
       ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} has successfully enchanted ` +
@@ -304,7 +304,7 @@ module.exports = function Discord(dispatch, config) {
     }
   });
 
-  sysmsg.on('smtGachaReward', (params) => {
+  sysmsg.on('SMT_GACHA_REWARD', (params) => {
     if (allGuildies.indexOf(params['UserName']) !== -1) {
       ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} obtained <${conv(params['randomItemName'])}> x ` +
@@ -316,7 +316,7 @@ module.exports = function Discord(dispatch, config) {
   /***************
    * guild hooks *
    ***************/
-  dispatch.hook('sGuildInfo', event => {
+  dispatch.hook('sGuildInfo', 1, (event) => {
     lastUpdate[GINFO_TYPE.details] = Date.now();
 
     guildId = event.id;
@@ -325,7 +325,7 @@ module.exports = function Discord(dispatch, config) {
     ipc.send('motd', motd);
   });
 
-  dispatch.hook('sGuildMemberList', event => {
+  dispatch.hook('sGuildMemberList', 1, (event) => {
     lastUpdate[GINFO_TYPE.members] = Date.now();
 
     if (event.first) {

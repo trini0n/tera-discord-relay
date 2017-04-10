@@ -1,36 +1,36 @@
 // config
-var fs = require('fs');
-var fn = process.argv[2];
+const fs = require('fs');
+const fn = process.argv[2];
 
 if (fn == null) {
   console.error('please specify config file');
   process.exit(1);
 }
 
-var config = JSON.parse(fs.readFileSync(fn, 'utf8'));
+const config = JSON.parse(fs.readFileSync(fn, 'utf8'));
 
 // client
-var webClient = require('tera-auth-ticket');
-var gameClient = require('tera-proxy-game');
+const webClient = require('tera-auth-ticket');
+const { Connection, FakeClient } = require('tera-proxy-game');
 
-var describe = (function() {
-  var races = ['Human', 'High Elf', 'Aman', 'Castanic', 'Popori', 'Baraka'];
-  var genders = ['Male', 'Female'];
+const describe = (() => {
+  const races = ['Human', 'High Elf', 'Aman', 'Castanic', 'Popori', 'Baraka'];
+  const genders = ['Male', 'Female'];
 
-  var classes = [
+  const classes = [
     'Warrior', 'Lancer', 'Slayer', 'Berserker', 'Sorcerer', 'Archer',
-    'Priest', 'Mystic', 'Reaper', 'Gunner', 'Brawler', 'Ninja'
+    'Priest', 'Mystic', 'Reaper', 'Gunner', 'Brawler', 'Ninja',
   ];
 
   return function describe(character) {
-    var description = '';
+    let description = '';
 
     // race & gender
-    var race = races[character.race] || '?';
-    var gender = genders[character.gender] || '?';
+    const race = races[character.race] || '?';
+    const gender = genders[character.gender] || '?';
 
     if (character.race < 4) {
-      description += race + ' ' + gender;
+      description += `${race} ${gender}`;
     } else {
       if (character.race === 4 && character.gender === 1) {
         description += 'Elin';
@@ -51,22 +51,23 @@ var describe = (function() {
 })();
 
 // main
-var web = new webClient(config.email, config.pass);
-web.getLogin(function(err, data) {
+const web = new webClient(config.email, config.pass);
+web.getLogin((err, data) => {
   if (err) return;
 
-  var connection = new gameClient.Connection();
-  var client = new gameClient.FakeClient(connection);
-  var srvConn = connection.connect(client, { host: config.host, port: config.port });
+  const connection = new Connection();
+  const client = new FakeClient(connection);
+  const srvConn = connection.connect(client, { host: config.host, port: config.port });
+
+  let closed = false;
 
   function closeClient() {
-    var cl = client;
-    if (cl) {
-      client = null;
-      cl.close();
-    }
+    if (closed) return;
 
-    setImmediate(function() {
+    closed = true;
+    clent.close();
+
+    setImmediate(() => {
       process.exit();
     });
   }
@@ -74,9 +75,9 @@ web.getLogin(function(err, data) {
   // set up core bot features
   connection.dispatch.load('<core>', function coreModule(dispatch) {
     // `connect` handler
-    client.on('connect', function onConnect() {
+    client.on('connect', () => {
       // authorization
-      dispatch.toServer('cLoginArbiter', {
+      dispatch.toServer('cLoginArbiter', 1, {
         unk1: 0,
         unk2: 0,
         unk3: 2,
@@ -87,33 +88,31 @@ web.getLogin(function(err, data) {
     });
 
     // get character list
-    dispatch.hook('sLoginAccountInfo', function() {
-      dispatch.toServer('cGetUserList');
+    dispatch.hook('sLoginAccountInfo', 1, () => {
+      dispatch.toServer('cGetUserList', 1);
     });
 
-    dispatch.hook('sGetUserList', function(event) {
+    dispatch.hook('sGetUserList', 1, (event) => {
       // parse character list
-      var characters = {};
-      for (var i = 0, len = event.characters.length; i < len; i++) {
-        var character = event.characters[i];
-        characters[character.name.toLowerCase()] = {
+      const characters = new Map();
+      for (const character of event.characters) {
+        characters.set(character.name.toLowerCase(), {
           id: character.id,
-          description: character.name + ' [' + describe(character) + ']',
-        };
+          description: `${character.name} [${describe(character)}]`,
+        });
       }
 
       // find matching character
-      character = characters[config.character.toLowerCase()];
+      const character = characters.get(config.character.toLowerCase());
       if (!character) {
-        console.error('[client] no character "' + config.character + '"');
+        console.error(`[client] no character "${config.character}"`);
         console.error('[client] character list:');
-        for (var name in characters) {
-          character = characters[name];
-          console.error('- ' + character.description + ' (id: ' + character.id + ')');
+        for (const char of characters.values()) {
+          console.error(`- ${char.description} (id: ${char.id})`);
         }
       } else {
-        console.log('[client] logging onto ' + character.description + ' (id: ' + character.id + ')');
-        dispatch.toServer('cSelectUser', {
+        console.log(`[client] logging onto ${character.description} (id: ${character.id})`);
+        dispatch.toServer('cSelectUser', 1, {
           id: character.id,
           unk: 0,
         });
@@ -121,45 +120,45 @@ web.getLogin(function(err, data) {
     });
 
     // login sequence
-    dispatch.hook('sLoadTopo', function() {
-      dispatch.toServer('cLoadTopoFin');
+    dispatch.hook('sLoadTopo', 1, () => {
+      dispatch.toServer('cLoadTopoFin', 1);
     });
 
     // ping-pong
-    dispatch.hook('sPing', function() {
-      dispatch.toServer('cPong');
+    dispatch.hook('sPing', 1, () => {
+      dispatch.toServer('cPong', 1);
     });
 
     // terminate when connection ends
-    client.on('close', function onClose() {
+    client.on('close', () => {
       closeClient();
     });
   });
 
   // load modules
-  for (var moduleName in config.modules) {
-    var moduleConfig = config.modules[moduleName];
+  for (const moduleName in config.modules) {
+    const moduleConfig = config.modules[moduleName];
     connection.dispatch.load('./app/' + moduleName, module, moduleConfig);
   }
 
   // logging
   srvConn.setTimeout(30 * 1000);
 
-  srvConn.on('connect', function onConnect() {
-    console.log('<connected to ' + srvConn.remoteAddress + ":" + srvConn.remotePort + '>');
+  srvConn.on('connect', () => {
+    console.log(`<connected to ${srvConn.remoteAddress}:${srvConn.remotePort}>`);
   });
 
-  srvConn.on('timeout', function onTimeout() {
+  srvConn.on('timeout', () => {
     console.log('<timeout>');
     closeClient();
   });
 
-  srvConn.on('close', function onClose() {
+  srvConn.on('close', () => {
     console.log('<disconnected>');
     process.exit();
   });
 
-  srvConn.on('error', function onError(err) {
+  srvConn.on('error', (err) => {
     console.warn(err);
   });
 });
