@@ -65,7 +65,7 @@ web.getLogin((err, data) => {
     if (closed) return;
 
     closed = true;
-    clent.close();
+    client.close();
 
     setImmediate(() => {
       process.exit();
