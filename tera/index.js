@@ -19,7 +19,7 @@ const describe = (() => {
 
   const classes = [
     'Warrior', 'Lancer', 'Slayer', 'Berserker', 'Sorcerer', 'Archer',
-    'Priest', 'Mystic', 'Reaper', 'Gunner', 'Brawler', 'Ninja',
+    'Priest', 'Mystic', 'Reaper', 'Gunner', 'Brawler', 'Ninja', 'Valkyrie',
   ];
 
   return function describe(character) {
@@ -72,6 +72,8 @@ web.getLogin((err, data) => {
     });
   }
 
+  connection.dispatch.setProtocolVersion(313623);
+
   // set up core bot features
   connection.dispatch.load('<core>', function coreModule(dispatch) {
     // `connect` handler
@@ -81,7 +83,7 @@ web.getLogin((err, data) => {
         unk1: 0,
         unk2: 0,
         unk3: 2,
-        patchVersion: 5402,
+        patchVersion: 9901,
         name: data.name,
         ticket: new Buffer(data.ticket),
       });
