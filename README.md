@@ -2,6 +2,8 @@
 
 Chat relay between a Discord channel and TERA /guild chat.
 
+![](http://i.imgur.com/4Wmr86w.png)
+
 **Warning:** This app is due for a major revamp. Expect minimal support until that's done.
 
 ## Setup
@@ -61,6 +63,11 @@ You'll need to make two JSON configuration files: one for Discord and one for TE
 
 - `host` and `port` will come from your region's server list. You can get links to the server lists on the [`tera-proxy-sls` README](https://github.com/meishuu/tera-proxy-sls#server-urls).
 
+Also, TERA has a few version numbers you might need to change for big patches. Open up [`tera/index.js`](tera/index.js) and look for these:
+
+- `patchVersion` is usually the major and minor patch number put together. For instance, if you launch TERA, go to server select, and see "56.03.02 EN2" at the bottom, try setting `patchVersion` to 5603. If that doesn't work, try 9901.
+- `setProtocolVersion` is not so easy to check, but if you run [tera-proxy](https://github.com/meishuu/tera-proxy) it'll display the protocol version when you connect to it.
+
 ## Running
 
 You'll need to start up two terminals.
@@ -73,9 +80,25 @@ node . config/your-config-file.json
 ```
 
 And one for TERA:
-```
+```sh
 cd path/to/tera-discord-relay/tera
 node . config/your-config-file.json
 ```
 
-It's recommended to run these on an infinite loop because failure conditions terminate the program.
+It's recommended to run these on an infinite loop because failure conditions terminate the program. However, do note that the auth server will start rejecting logins if too many are performed in a short span of time.
+
+## Updating
+
+To pull general updates for the Discord relay app:
+
+```sh
+cd path/to/tera-discord-relay
+git pull
+npm install
+```
+
+Every major version patch, TERA has some versioning info that needs changing. See the section above on TERA configuration for more info. To update tera-data, simply run:
+
+```sh
+npm install meishuu/tera-data
+```
