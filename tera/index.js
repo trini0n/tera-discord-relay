@@ -72,7 +72,7 @@ web.getLogin((err, data) => {
     });
   }
 
-  connection.dispatch.setProtocolVersion(320857);
+  connection.dispatch.setProtocolVersion(321553);
   
   // set up core bot features
   connection.dispatch.load('<core>', function coreModule(dispatch) {
@@ -83,7 +83,7 @@ web.getLogin((err, data) => {
         unk1: 0,
         unk2: 0,
         unk3: 2,
-        patchVersion: 5903,
+        patchVersion: 6103,
         name: data.name,
         ticket: new Buffer(data.ticket),
       });
