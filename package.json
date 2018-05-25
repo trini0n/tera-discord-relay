@@ -5,9 +5,9 @@
   "license": "ISC",
   "author": "meishu",
   "dependencies": {
-    "discord.js": "^11.0.0",
+    "discord.js": "^11.3.0",
     "tera-auth-ticket": "meishuu/tera-auth-ticket",
-    "tera-data": "meishuu/tera-data",
+    "tera-data": "github:meishuu/tera-data",
     "tera-data-parser": "meishuu/tera-data-parser-js",
     "tera-proxy-game": "meishuu/tera-proxy-game"
   },

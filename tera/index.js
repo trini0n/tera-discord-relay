@@ -72,29 +72,29 @@ web.getLogin((err, data) => {
     });
   }
 
-  connection.dispatch.setProtocolVersion(321553);
+  connection.dispatch.setProtocolVersion(config.protocolVersion);
   
   // set up core bot features
   connection.dispatch.load('<core>', function coreModule(dispatch) {
     // `connect` handler
     client.on('connect', () => {
       // authorization
-      dispatch.toServer('cLoginArbiter', 1, {
+      dispatch.toServer('C_LOGIN_ARBITER', 1, {
         unk1: 0,
         unk2: 0,
         unk3: 2,
-        patchVersion: 6103,
+        patchVersion: config.patchVersion,
         name: data.name,
         ticket: new Buffer(data.ticket),
       });
     });
 
     // get character list
-    dispatch.hook('sLoginAccountInfo', 1, () => {
-      dispatch.toServer('cGetUserList', 1);
+    dispatch.hook('S_LOGIN_ACCOUNT_INFO', 1, () => {
+      dispatch.toServer('C_GET_USER_LIST', 1);
     });
 
-    dispatch.hook('sGetUserList', 1, (event) => {
+    dispatch.hook('S_GET_USER_LIST', 1, (event) => {
       // parse character list
       const characters = new Map();
       for (const character of event.characters) {
@@ -114,7 +114,7 @@ web.getLogin((err, data) => {
         }
       } else {
         console.log(`[client] logging onto ${character.description} (id: ${character.id})`);
-        dispatch.toServer('cSelectUser', 1, {
+        dispatch.toServer('C_SELECT_USER', 1, {
           id: character.id,
           unk: 0,
         });
@@ -122,13 +122,13 @@ web.getLogin((err, data) => {
     });
 
     // login sequence
-    dispatch.hook('sLoadTopo', 1, () => {
-      dispatch.toServer('cLoadTopoFin', 1);
+    dispatch.hook('S_LOAD_TOPO', 1, () => {
+      dispatch.toServer('C_LOAD_TOPO_FIN', 1);
     });
 
     // ping-pong
-    dispatch.hook('sPing', 1, () => {
-      dispatch.toServer('cPong', 1);
+    dispatch.hook('S_PING', 1, () => {
+      dispatch.toServer('C_PONG', 1);
     });
 
     // terminate when connection ends

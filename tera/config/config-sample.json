@@ -4,5 +4,9 @@
 , "host": "208.67.49.68"
 , "port": 10001
 , "modules":
-  { "discord": { "socketName": "tera-discord-ipc" } }
+  { "discord": { "socketName": "tera-discord-ipc" } 
+  , "gquest": { "(optional; automatically completes gquests - remove entire line to disable)" }
+  }
+, "protocolVersion": 330802,
+, "patchVersion": 6802
 }

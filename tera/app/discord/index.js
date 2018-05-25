@@ -152,23 +152,23 @@ module.exports = function Discord(dispatch, config) {
     }
   }, REFRESH_TIMER);
 
-  dispatch.hook('sLogin', 2, (event) => {
+  dispatch.hook('S_LOGIN', 10, (event) => {
     myName = event.name;
   });
 
-  dispatch.hook('sChat', 1, (event) => {
+  dispatch.hook('S_CHAT', 1, (event) => {
     if (event.channel === 2 && event.authorName !== myName) {
       ipc.send('chat', event.authorName, event.message);
     }
   });
 
-  dispatch.hook('sWhisper', 1, (event) => {
+  dispatch.hook('S_WHISPER', 1, (event) => {
     if (event.recipient === myName) {
       ipc.send('whisper', event.author, event.message);
     }
   });
 
-  dispatch.hook('sLoadTopo', 1, (event) => {
+  dispatch.hook('S_LOAD_TOPO', 1, (event) => {
     loaded = true;
     while (messageQueue.length > 0) {
       dispatch.toServer(...messageQueue.shift());
@@ -224,7 +224,7 @@ module.exports = function Discord(dispatch, config) {
   /****************
    * Guild Quests *
    ****************/
-  dispatch.hook('sGuildQuestList', 1, (event) => {
+  dispatch.hook('S_GUILD_QUEST_LIST', 1, (event) => {
     lastUpdate[GINFO_TYPE.quests] = Date.now();
 
     const quests = event.quests.filter(quest => quest.status !== 0);
@@ -246,7 +246,7 @@ module.exports = function Discord(dispatch, config) {
     }));
   });
 
-  dispatch.hook('sUpdateGuildQuestStatus', 1, (event) => {
+  dispatch.hook('S_UPDATE_GUILD_QUEST_STATUS', 1, (event) => {
     requestGuildInfo(GINFO_TYPE.quests);
   });
 
@@ -295,13 +295,16 @@ module.exports = function Discord(dispatch, config) {
   /****************
    * Misc Notices *
    ****************/
-  sysmsg.on('SMT_MAX_ENCHANT_SUCCEED', (params) => {
+    sysmsg.on('SMT_MAX_ENCHANT_SUCCEED', (params) => {
+    var parts = params['ItemName'].slice(1).split('?');
+    var last = parts.pop().split(':');
+    var enchant = last[1];
     if (allGuildies.indexOf(params['UserName']) !== -1) {
       ipc.send('sysmsg', escapeHtml(
         `${params['UserName']} has successfully enchanted ` +
-        `(+${params['Added']}) <${conv(params['ItemName'])}>.`
+        `(+` + enchant + `) <${conv(params['ItemName'])}>.`
       ));
-    }
+     }
   });
 
   sysmsg.on('SMT_GACHA_REWARD', (params) => {
@@ -316,7 +319,7 @@ module.exports = function Discord(dispatch, config) {
   /***************
    * guild hooks *
    ***************/
-  dispatch.hook('sGuildInfo', 1, (event) => {
+  dispatch.hook('S_GUILD_INFO', 1, (event) => {
     lastUpdate[GINFO_TYPE.details] = Date.now();
 
     guildId = event.id;
@@ -325,7 +328,7 @@ module.exports = function Discord(dispatch, config) {
     ipc.send('motd', motd);
   });
 
-  dispatch.hook('sGuildMemberList', 1, (event) => {
+  dispatch.hook('S_GUILD_MEMBER_LIST', 1, (event) => {
     lastUpdate[GINFO_TYPE.members] = Date.now();
 
     if (event.first) {

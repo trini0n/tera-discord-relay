@@ -17,7 +17,7 @@ const bot = new Discord.Client({
 
 bot.on('ready', () => {
   console.log('connected as %s (%s)', bot.user.username, bot.user.id);
-  bot.user.setGame('TERA');
+  bot.user.setActivity({game: {name: "TERA", type: 0}});
 });
 
 bot.on('warn', (warn) => {
