@@ -4,8 +4,6 @@ Chat relay between a Discord channel and TERA /guild chat.
 
 ![](http://i.imgur.com/4Wmr86w.png)
 
-**Warning:** This app is due for a major revamp. Expect minimal support until that's done.
-
 ## Setup
 
 You'll need:
