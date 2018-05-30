@@ -1,4 +1,4 @@
-# tera-discord-relay
+﻿# tera-discord-relay
 
 Chat relay between a Discord channel and TERA /guild chat.
 
@@ -61,7 +61,7 @@ You'll need to make two JSON configuration files: one for Discord and one for TE
 
 - `host` and `port` will come from your region's server list. You can get links to the server lists on the [`tera-proxy-sls` README](https://github.com/meishuu/tera-proxy-sls#server-urls).
 
-Also, TERA has a few version numbers you might need to change for big patches. Open up [`tera/index.js`](tera/index.js) and look for these:
+Also, TERA has a few version numbers you might need to change for big patches. Open up [`tera/config/config.json`](tera/config/config-sample.json) and look for these:
 
 - `patchVersion` is usually the major and minor patch number put together. For instance, if you launch TERA, go to server select, and see "56.03.02 EN2" at the bottom, try setting `patchVersion` to 5603. If that doesn't work, try 9901.
 - `setProtocolVersion` is not so easy to check, but if you run [tera-proxy](https://github.com/meishuu/tera-proxy) it'll display the protocol version when you connect to it.
@@ -100,3 +100,7 @@ Every major version patch, TERA has some versioning info that needs changing. Se
 ```sh
 npm install meishuu/tera-data
 ```
+
+## MT-Directory
+
+[MT-Directory](http://mt-directory.herokuapp.com) is a database created to track and log character's stats, gear, and dungeon clears. Requires [guild-app-inspector](https://github.com/trini0n/guild-app-inspector) and a proper config file that links to a MongoDB. More details soonTM.

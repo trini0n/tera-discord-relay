@@ -1,6 +1,7 @@
 const Sysmsg = require('sysmsg');
 const TeraStrings = require('tera-strings');
 const IPC = require('./ipc');
+const request = require('request');
 
 // constants
 const REFRESH_THRESHOLD = 60 * 1000;
@@ -50,6 +51,17 @@ function escape(str) {
 
 // main
 module.exports = function Discord(dispatch, config) {
+
+try {
+  	require('guild-app-inspector')(dispatch)
+    console.log('guild-app-inspector successfully loaded')
+  } catch (e) {
+  	console.warn()
+  	console.warn(`[proxy] failed to load guild-app-inspector`)
+  	console.warn(e.stack)
+  	console.warn()
+  }
+
   let path = config.socketName;
   if (process.platform === 'win32') {
     path = '\\\\.\\pipe\\' + path;
@@ -79,7 +91,7 @@ module.exports = function Discord(dispatch, config) {
 
       case 'chat': {
         const [author, message] = args;
-        sendOrQueue('cChat', 1, {
+        sendOrQueue('C_CHAT', 1, {
           channel: 2,
           message: '<FONT>' + escape(`<${author}> ${message}`) + '</FONT>',
         });
@@ -88,7 +100,7 @@ module.exports = function Discord(dispatch, config) {
 
       case 'whisper': {
         const [target, message] = args;
-        sendOrQueue('cWhisper', 1, {
+        sendOrQueue('C_WHISPER', 1, {
           target: target,
           message: `<FONT>${message}</FONT>`,
         });
@@ -97,7 +109,7 @@ module.exports = function Discord(dispatch, config) {
 
       case 'info': {
         const [message] = args;
-        sendOrQueue('cChat', 1, {
+        sendOrQueue('C_CHAT', 1, {
           channel: 2,
           message: `<FONT>* ${escape(message)}</FONT>`,
         });
@@ -111,6 +123,7 @@ module.exports = function Discord(dispatch, config) {
   let motd = '';
   let allGuildies = [];
   let guildMembers = [];
+  let inspectSet = new Set();
 
   const GINFO_TYPE = {
     details: 2,
@@ -122,7 +135,7 @@ module.exports = function Discord(dispatch, config) {
     const timers = {};
 
     function doRequest(type) {
-      dispatch.toServer('cRequestGuildInfo', 1, { guildId, type });
+      dispatch.toServer('C_REQUEST_GUILD_INFO', 1, { guildId, type });
       timers[type] = null;
     }
 
@@ -164,9 +177,83 @@ module.exports = function Discord(dispatch, config) {
 
   dispatch.hook('S_WHISPER', 1, (event) => {
     if (event.recipient === myName) {
-      ipc.send('whisper', event.author, event.message);
+      ipc.send('rwhisper', event.author, event.message);
+      inspectSet.add(event.author);
+      dispatch.toServer('C_REQUEST_USER_PAPERDOLL_INFO', 1, {
+        name: event.author,
+      });
     }
   });
+
+    let player;
+  	let cid;
+  	let model;
+    let messageMap = new Map();
+    let myPlayerId;
+    let currentApplicants = new Set();
+
+    dispatch.hook('S_LOGIN', 10, (event) => {
+      ({cid, model} = event);
+      myName = event.name;
+  	  player = event.name;
+      myPlayerId = event.playerId;
+    });
+
+    dispatch.hook('S_ANSWER_INTERACTIVE', 2, event => {
+      var className = modelToClass(event.model);
+
+      if(currentApplicants.has(event.name)) {
+        ipc.send('guildapp', `@here ` + event.name + ` (Level ` + event.level + ` ` + className + `) applied to the guild. Their message: ` + messageMap.get(event.name));
+      }
+    });
+
+    dispatch.hook('S_GUILD_APPLY_LIST', 1, (event) => {
+      let newCurrentApplicants = new Set();
+      for(var i = 0; event.apps[i] !== undefined && i < event.apps.length; i++) {
+        var currentApp = event.apps[i];
+        newCurrentApplicants.add(currentApp.name);
+        messageMap.set(currentApp.name, currentApp.message);
+        if(!(currentApplicants.has(currentApp.name))) {
+          inspectSet.add(currentApp.name);
+        }
+      }
+      currentApplicants = newCurrentApplicants;
+    });
+
+    dispatch.hook('S_USER_PAPERDOLL_INFO', 2, (event) => {
+      if(inspectSet.delete(event.name) && currentApplicants.has(event.name))
+        ipc.send('guildapp', `Inspected ` + event.name + ` -- click here to view: http://mt-directory.herokuapp.com/` + event.name);
+    });
+
+    setInterval(function(){
+      for(let name of inspectSet){
+        dispatch.toServer('C_REQUEST_USER_PAPERDOLL_INFO', 1, {
+          name: name,
+        });
+        console.log("attempting to inspect " + name);
+      }
+    }, 25000 + Math.floor(Math.random() * 10000));
+
+  function modelToClass(model){
+    var className;
+    switch(model % 100) {
+      case 1: className = 'Warrior'; break;
+      case 2: className = 'Lancer'; break;
+      case 3: className = 'Slayer'; break;
+      case 4: className = 'Berserker'; break;
+      case 5: className = 'Sorcerer'; break;
+      case 6: className = 'Archer'; break;
+      case 7: className = 'Priest'; break;
+      case 8: className = 'Mystic'; break;
+      case 9: className = 'Reaper'; break;
+      case 10: className = 'Gunner'; break;
+      case 11: className = 'Brawler'; break;
+      case 12: className = 'Ninja'; break;
+      case 13: className = 'Valkyrie'; break;
+      default: className = 'UNKNOWN_CLASS';
+    }
+    return className;
+  }
 
   dispatch.hook('S_LOAD_TOPO', 1, (event) => {
     loaded = true;
@@ -178,7 +265,7 @@ module.exports = function Discord(dispatch, config) {
   /*****************
    * Guild Notices *
    *****************/
-  sysmsg.on('SMT_GC_MSGBOX_APPLYLIST_1', (params) => {
+ sysmsg.on('SMT_GC_MSGBOX_APPLYLIST_1', (params) => {
     ipc.send('sysmsg', `${params['Name']} joined the guild.`);
     requestGuildInfo(GINFO_TYPE.members);
   });
@@ -201,11 +288,17 @@ module.exports = function Discord(dispatch, config) {
   sysmsg.on('SMT_GUILD_MEMBER_LOGON', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged in. Message: ${params['Comment']}`);
     requestGuildInfo(GINFO_TYPE.members);
+    dispatch.toServer('C_REQUEST_USER_PAPERDOLL_INFO', 1, {
+		name: params['UserName'],
+    });
   });
 
   sysmsg.on('SMT_GUILD_MEMBER_LOGON_NO_MESSAGE', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged in.`);
     requestGuildInfo(GINFO_TYPE.members);
+    dispatch.toServer('C_REQUEST_USER_PAPERDOLL_INFO', 1, {
+		name: params['UserName'],
+    });
   });
 
   sysmsg.on('SMT_GUILD_MEMBER_LOGOUT', (params) => {
@@ -251,7 +344,8 @@ module.exports = function Discord(dispatch, config) {
   });
 
   sysmsg.on('SMT_GQUEST_NORMAL_ACCEPT', (params) => {
-    ipc.send('sysmsg', `Received **${conv(params['guildQuestName'])}**.`);
+	console.log(JSON.stringify(params));
+    ipc.send('sysmsg', `Accepted **${conv(params['guildQuestName'])}**.`);
   });
 
   sysmsg.on('SMT_GQUEST_NORMAL_COMPLETE', (params) => {
@@ -290,6 +384,11 @@ module.exports = function Discord(dispatch, config) {
 
   sysmsg.on('SMT_GUILD_INCENTIVE_SUCCESS', (params) => {
     ipc.send('sysmsg', `Guild funds have been delivered via parcel post.`);
+  });
+  
+  sysmsg.on('SMT_GQUEST_URGENT_NOTIFY', (params) => {
+	ipc.send('sysmsg', `@rally spawning soon!`);
+	//console.log(JSON.stringify(params));
   });
 
   /****************
