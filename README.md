@@ -34,6 +34,7 @@ You'll need:
 
 - Join the desired guild on the desired character to use as the bot relay.
 - Turn off account armor.
+- If you want the relay to be able to complete guild quests, give it a role and assign the appropriate permissions in game.
 
 ## Installation
 
@@ -66,7 +67,7 @@ Also note that in order for the rally notification to work for members in Discor
 Also, TERA has a few version numbers you might need to change for big patches. Open up [`tera/config/config.json`](tera/config/config-sample.json) and look for these:
 
 - `patchVersion` is usually the major and minor patch number put together. For instance, if you launch TERA, go to server select, and see "56.03.02 EN2" at the bottom, try setting `patchVersion` to 5603. If that doesn't work, try 9901.
-- `setProtocolVersion` is not so easy to check, but if you run [tera-proxy](https://github.com/meishuu/tera-proxy) it'll display the protocol version when you connect to it.
+- `protocolVersion` is not so easy to check, but if you run [tera-proxy](https://github.com/meishuu/tera-proxy) it'll display the protocol version when you connect to it.
 
 ## Running
 
