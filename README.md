@@ -49,6 +49,8 @@ npm install
 
 You'll need to make two JSON configuration files: one for Discord and one for TERA. You can see an example for each in the `config/config-sample.json` of their respective directories. It is strongly recommended that you make a new file instead of changing the sample file.
 
+Also note that in order for the rally notification to work for members in Discord, a `@rally` role must be created and assigned to those who want to receive the notification.
+
 ### Discord
 
 - `socket-name` can be anything as long as it matches what you put in the TERA config.
