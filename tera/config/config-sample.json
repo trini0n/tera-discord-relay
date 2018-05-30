@@ -7,6 +7,6 @@
   { "discord": { "socketName": "tera-discord-ipc" } 
   , "gquest": { "(optional; automatically completes gquests - remove entire line to disable)" }
   }
-, "protocolVersion": 330802,
+, "protocolVersion": 330802
 , "patchVersion": 6802
 }
