@@ -111,6 +111,10 @@ module.exports = function gchatModule(app, config) {
       guild.quest = quest;
       updateTopic();
     });
+	
+	ipc.on('rally', (rally) => {
+      channel.sendMessage = U.emojify(U.toDiscord(U.unHtml(rally), server));
+	});
 
     ipc.on('sysmsg', (message) => {
       // don't convert mentions; highlights from TERA login message are abusable
