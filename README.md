@@ -34,6 +34,7 @@ You'll need:
 
 - Join the desired guild on the desired character to use as the bot relay.
 - Turn off account armor.
+- If you want the relay to be able to complete guild quests, give it a role and assign the appropriate permissions in game.
 
 ## Installation
 
