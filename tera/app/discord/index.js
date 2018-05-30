@@ -387,8 +387,12 @@ try {
   });
   
   sysmsg.on('SMT_GQUEST_URGENT_NOTIFY', (params) => {
-	ipc.send('sysmsg', `@rally spawning soon!`);
-	//console.log(JSON.stringify(params));
+	var d = new Date();
+	var today = d.getDay();
+	if(today != 2 && today != 5)
+		ipc.send('rally', `@rally BAM spawning soon!`);
+	else
+		ipc.send('rally', `@rally (PVP) BAM spawning soon!`);
   });
 
   /****************
