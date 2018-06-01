@@ -104,6 +104,24 @@ Every major version patch, TERA has some versioning info that needs changing. Se
 npm install meishuu/tera-data
 ```
 
+If the console is throwing up errors about certain packets not being defined, you may need to edit the (protocolVersion).map file and add them. The typical ones that you'll need are:
+```
+C_GUILD_APPLY_LIST
+C_REQUEST_GUILD_INFO
+C_REQUEST_FINISH_GUILD_QUES
+C_DUNGEON_CLEAR_COUNT_LIST
+S_DUNGEON_CLEAR_COUNT_LIST
+S_PING
+S_GUILD_INFO
+S_GUILD_MEMBER_LIST
+S_GUILD_QUEST_LIST
+S_GUILD_APPLY_LIST
+S_GUILD_APPLY_COUNT
+S_SHOW_ITEM_TOOLTIP
+S_UPDATE_GUILD_QUEST_STATUS
+S_USER_PAPERDOLL_INFO
+```
+
 ## MT-Directory
 
 [MT-Directory](http://mt-directory.herokuapp.com) is a database created to track and log character's stats, gear, and dungeon clears. Requires [guild-app-inspector](https://github.com/trini0n/guild-app-inspector) and a proper config file that links to a MongoDB. More details soonTM.
