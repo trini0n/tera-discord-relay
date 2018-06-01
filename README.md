@@ -104,7 +104,7 @@ Every major version patch, TERA has some versioning info that needs changing. Se
 npm install meishuu/tera-data
 ```
 
-If the console is throwing up errors about certain packets not being defined, you may need to edit the (protocolVersion).map file and add them. The typical ones that you'll need are:
+If the console is throwing up errors about certain packets not being defined, you may need to edit the (protocolVersion).map file and add them. The typical ones that you'll need are (NA mappings are included in the file [NA Additional Opcodes](https://github.com/trini0n/tera-discord-relay/blob/master/NA%20Additional%20Opcodes%20(330802))):
 ```
 C_GUILD_APPLY_LIST
 C_REQUEST_GUILD_INFO
@@ -125,3 +125,5 @@ S_USER_PAPERDOLL_INFO
 ## MT-Directory
 
 [MT-Directory](http://mt-directory.herokuapp.com) is a database created to track and log character's stats, gear, and dungeon clears. Requires [guild-app-inspector](https://github.com/trini0n/guild-app-inspector) and a proper config file that links to a MongoDB. More details soonTM.
+
+Errors regarding `[proxy] failed to load guild-app-inspector` can be ignored if you're not using the module.
