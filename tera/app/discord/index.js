@@ -291,12 +291,18 @@ try {
     dispatch.toServer('C_REQUEST_USER_PAPERDOLL_INFO', 1, {
 		name: params['UserName'],
     });
+    dispatch.toServer('C_DUNGEON_CLEAR_COUNT_LIST', 1, {
+		name: params['UserName'],
+    });
   });
 
   sysmsg.on('SMT_GUILD_MEMBER_LOGON_NO_MESSAGE', (params) => {
     ipc.send('sysmsg', `${params['UserName']} logged in.`);
     requestGuildInfo(GINFO_TYPE.members);
     dispatch.toServer('C_REQUEST_USER_PAPERDOLL_INFO', 1, {
+		name: params['UserName'],
+    });
+    dispatch.toServer('C_DUNGEON_CLEAR_COUNT_LIST', 1, {
 		name: params['UserName'],
     });
   });
